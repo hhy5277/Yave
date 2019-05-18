@@ -22,10 +22,8 @@ SOFTWARE.
 
 #include "SimpleMaterialData.h"
 
-#include <y/io/File.h>
 
 namespace yave {
-
 
 SimpleMaterialData::SimpleMaterialData(std::array<AssetPtr<Texture>, texture_count>&& textures) :
 		_textures(std::move(textures)) {

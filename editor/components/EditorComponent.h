@@ -39,7 +39,6 @@ class EditorComponent {
 		bool is_visible() const;
 
 		y_serde2(_name, _visible)
-		y_serde_compat()
 
 	private:
 		core::String _name;

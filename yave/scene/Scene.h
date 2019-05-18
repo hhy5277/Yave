@@ -30,8 +30,6 @@ SOFTWARE.
 
 #include <yave/assets/AssetLoader.h>
 
-#include <y/io/Ref.h>
-
 namespace yave {
 
 // Not used right now

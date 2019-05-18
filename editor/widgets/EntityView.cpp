@@ -29,7 +29,6 @@ SOFTWARE.
 
 // remove:
 #include <yave/material/Material.h>
-#include <y/io/File.h>
 
 namespace editor {
 

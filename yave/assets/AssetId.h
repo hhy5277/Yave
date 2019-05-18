@@ -61,7 +61,6 @@ struct AssetId {
 		}
 
 		y_serde2(_id)
-		y_serde_compat()
 
 	private:
 		friend class AssetIdFactory;
@@ -85,8 +84,6 @@ static_assert(std::is_trivially_copyable_v<AssetId>);
 
 class AssetIdFactory {
 	public:
-		y_serde(_next_id)
-
 		AssetId create_id() {
 			return AssetId(_next_id++);
 		}

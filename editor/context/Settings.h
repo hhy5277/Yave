@@ -51,7 +51,6 @@ class Settings {
 		UiSettings& ui();
 
 		y_serde2(_camera, _ui)
-		y_serde_compat()
 
 	private:
 		CameraSettings _camera;

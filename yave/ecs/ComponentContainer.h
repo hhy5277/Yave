@@ -212,8 +212,7 @@ class ComponentContainer final : public ComponentContainerBase {
 	// ------------------------------------- serde BS -------------------------------------
 
 	private:
-		static constexpr bool is_serde_compatible = (serde::is_serializable<T>::value && serde::is_deserializable<T>::value) ||
-													std::is_trivially_copyable_v<T>;
+		static constexpr bool is_serde_compatible = serde2::is_serializable<WritableAssetArchive, T>::value && serde2::is_deserializable<ReadableAssetArchive, T>::value;
 
 		u64 serialization_type_id() const override {
 			return _registerer->type.type_id();

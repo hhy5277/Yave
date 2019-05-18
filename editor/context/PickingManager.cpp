@@ -23,7 +23,6 @@ SOFTWARE.
 #include "PickingManager.h"
 #include "EditorContext.h"
 
-#include <y/io/File.h>
 #include <yave/graphics/shaders/ComputeProgram.h>
 #include <yave/renderer/SceneRenderSubPass.h>
 

@@ -52,8 +52,6 @@ struct Nothing;
 
 #define y_fwd(var) std::forward<decltype(var)>(var)
 
-#define Y_IO_SERDE2_COMPAT
-
 #ifdef Y_DEBUG
 #ifndef Y_PERF_LOG_DISABLED
 #define Y_PERF_LOG_ENABLED

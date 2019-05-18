@@ -25,8 +25,6 @@ SOFTWARE.
 #include <y/math/math.h>
 #include <y/serde2/serde.h>
 
-#include <y/io/Ref.h>
-
 #include <y/test/test.h>
 
 namespace {

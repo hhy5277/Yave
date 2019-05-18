@@ -26,7 +26,6 @@ SOFTWARE.
 #include <y/core/String.h>
 
 #include <yave/utils/serde.h>
-#include <y/io/Buffer.h>
 
 #include "AssetPtr.h"
 #include "AssetStore.h"

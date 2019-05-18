@@ -63,35 +63,6 @@ namespace serde2 {
 	y_deserialize2(__VA_ARGS__)
 
 
-#define y_serde_deser_compat()									\
-	void deserialize(y::io::ReaderRef r) {						\
-		y::io2::Reader reader(r);								\
-		y::serde2::ReadableArchive ar(reader);					\
-		ar(*this).or_throw("serde2");							\
-	}															\
-	static auto _y_serde2_self_type_helper() ->					\
-		std::remove_reference<decltype(*this)>::type;			\
-	static auto deserialized(y::io::ReaderRef r) {				\
-		y::io2::Reader reader(r);								\
-		y::serde2::ReadableArchive ar(reader);					\
-		decltype(_y_serde2_self_type_helper()) t;				\
-		ar(t).or_throw("serde2");								\
-		return t;												\
-	}
-
-#define y_serde_ser_compat()									\
-	void serialize(y::io::WriterRef w) const {					\
-		y::io2::Writer writer(w);								\
-		y::serde2::WritableArchive ar(writer);					\
-		serialize(ar).or_throw("serde2");						\
-	}
-
-#define y_serde_compat()										\
-	y_serde_deser_compat()										\
-	y_serde_ser_compat()
-
-
-
 namespace detail {
 template<typename... Args>
 class Checker {
@@ -100,7 +71,7 @@ class Checker {
 		}
 
 		template<typename Arc>
-		Result deserialize(Arc&& ar) {
+		Result deserialize(Arc& ar) {
 			decltype(_t) t;
 			if(ar(t) && t == _t) {
 				return core::Ok();
@@ -109,7 +80,7 @@ class Checker {
 		}
 
 		template<typename Arc>
-		Result serialize(Arc&& ar) const {
+		Result serialize(Arc& ar) const {
 			return ar(_t);
 		}
 
@@ -124,7 +95,7 @@ class Function {
 		}
 
 		template<typename Arc>
-		Result deserialize(Arc&& ar) {
+		Result deserialize(Arc& ar) {
 			using ret_t = typename function_traits<T>::return_type;
 			using args_t = typename function_traits<T>::argument_pack ;
 			constexpr bool ret_result = std::is_convertible_v<ret_t, Result>;
@@ -145,7 +116,7 @@ class Function {
 		}
 
 		template<typename Arc>
-		Result serialize(Arc&& ar) const {
+		Result serialize(Arc& ar) const {
 			using ret_t = typename function_traits<T>::return_type;
 			using args_t = typename function_traits<T>::argument_pack;
 			constexpr bool ret_result = std::is_convertible_v<ret_t, Result>;
@@ -175,7 +146,7 @@ class Condition : Function<T> {
 		}
 
 		template<typename Arc>
-		Result deserialize(Arc&& ar) {
+		Result deserialize(Arc& ar) {
 			if(_c) {
 				return Function<T>::deserialize(ar);
 			}
@@ -183,7 +154,7 @@ class Condition : Function<T> {
 		}
 
 		template<typename Arc>
-		Result serialize(Arc&& ar) const {
+		Result serialize(Arc& ar) const {
 			if(_c) {
 				return Function<T>::serialize(ar);
 			}
@@ -202,12 +173,12 @@ class Array {
 		}
 
 		template<typename Arc>
-		Result deserialize(Arc&& ar) {
+		Result deserialize(Arc& ar) {
 			return ar.array(_t, _s);
 		}
 
 		template<typename Arc>
-		Result serialize(Arc&& ar) const {
+		Result serialize(Arc& ar) const {
 			return ar.array(_t, _s);
 		}
 

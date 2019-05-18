@@ -33,7 +33,6 @@ class SimpleMaterialData {
 
 	struct SimpleMaterialHeader {
 		y_serde2(serde2::check(fs::magic_number, AssetType::Material, u32(1)))
-		y_serde_compat()
 	};
 
 	public:
