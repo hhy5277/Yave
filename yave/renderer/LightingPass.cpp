@@ -127,12 +127,15 @@ LightingPass LightingPass::create(FrameGraph& framegraph, const GBufferPass& gbu
 
 
 			TypedMapping<uniform::Light> mapping = self->resources()->mapped_buffer(light_buffer);
-			usize light_count = scene.scene().lights().size();
-			for(const auto& l : scene.scene().lights()) {
-				if(l->type() == Light::Point) {
-					mapping[push_data.point_count++] = *l;
-				} else {
-					mapping[light_count - ++push_data.directional_count] = *l;
+			Y_TODO(We shouldn't need this)
+			if(scene.has_scene()) {
+				usize light_count = scene.scene().lights().size();
+				for(const auto& l : scene.scene().lights()) {
+					if(l->type() == Light::Point) {
+						mapping[push_data.point_count++] = *l;
+					} else {
+						mapping[light_count - ++push_data.directional_count] = *l;
+					}
 				}
 			}
 			const auto& program = recorder.device()->device_resources()[DeviceResources::DeferredLightingProgram];

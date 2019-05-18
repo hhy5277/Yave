@@ -23,7 +23,7 @@ SOFTWARE.
 #define YAVE_ASSETS_ASSETTRAITS_H
 
 #include "AssetType.h"
-#include "AssetReadableArchive.h"
+#include "AssetArchive.h"
 
 namespace yave {
 
@@ -43,7 +43,7 @@ struct AssetTraits {
 	static constexpr AssetType type = TypeEnum;												\
 	using load_from = LoadFrom;																\
 	using Result = core::Result<Type>;														\
-	static Result load_asset(AssetReadableArchive& arc) noexcept {							\
+	static Result load_asset(ReadableAssetArchive& arc) noexcept {							\
 		load_from data;																		\
 		if(!arc(data)) {																	\
 			return core::Err();																\
@@ -52,11 +52,11 @@ struct AssetTraits {
 	}																						\
 	static Result load_asset(io::ReaderRef reader, AssetLoader& loader) noexcept {			\
 		y::io2::Reader r(reader);															\
-		AssetReadableArchive ar(r, loader);													\
+		ReadableAssetArchive ar(r, loader);													\
 		return load_asset(ar);																\
 	}																						\
 	static Result load_asset(io2::ReaderRef reader, AssetLoader& loader) noexcept {			\
-		AssetReadableArchive ar(reader, loader);											\
+		ReadableAssetArchive ar(reader, loader);											\
 		return load_asset(ar);																\
 	}
 

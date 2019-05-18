@@ -43,7 +43,7 @@ static void modify_and_save(ContextPtr ctx, const AssetPtr<Material>& material, 
 		data.set_texture(SimpleMaterialData::Textures(index), std::move(tex.unwrap()));
 
 		io2::Buffer buffer;
-		if(data.serialize(serde2::WritableArchive(buffer))) {
+		if(data.serialize(WritableAssetArchive(buffer))) {
 			ctx->asset_store().write(material.id(), buffer).or_throw("");
 			ctx->loader().set(material.id(), Material(ctx->device(), std::move(data))).or_throw("");
 

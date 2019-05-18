@@ -19,8 +19,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 **********************************/
-#ifndef YAVE_ASSETS_ASSETREADABLEARCHIVE_H
-#define YAVE_ASSETS_ASSETREADABLEARCHIVE_H
+#ifndef YAVE_ASSETS_ASSETARCHIVE_H
+#define YAVE_ASSETS_ASSETARCHIVE_H
 
 #include "AssetId.h"
 
@@ -30,10 +30,12 @@ namespace yave {
 
 class AssetLoader;
 
-class AssetReadableArchive : public serde2::ReadableArchive {
+using WritableAssetArchive = serde2::WritableArchive;
+
+class ReadableAssetArchive : public serde2::ReadableArchive {
 
 	public:
-		AssetReadableArchive(serde2::ReadableArchive&& ar, AssetLoader& loader) :
+		ReadableAssetArchive(serde2::ReadableArchive&& ar, AssetLoader& loader) :
 				serde2::ReadableArchive(std::move(ar)),
 				_loader(loader) {
 		}
@@ -51,4 +53,4 @@ class AssetReadableArchive : public serde2::ReadableArchive {
 
 
 
-#endif // YAVE_ASSETS_ASSETREADABLEARCHIVE_H
+#endif // YAVE_ASSETS_ASSETARCHIVE_H

@@ -33,7 +33,6 @@ SOFTWARE.
 #include <yave/ecs/EntityWorld.h>
 
 #include "Settings.h"
-#include "SceneData.h"
 #include "Selection.h"
 #include "Ui.h"
 #include "ThumbmailCache.h"
@@ -54,50 +53,27 @@ class EditorContext : NonMovable, public DeviceLinked {
 		void defer(core::Function<void()> func);
 		void flush_deferred();
 
-		const FileSystemModel* filesystem() const {
-			return _filesystem.get() ? _filesystem.get() : FileSystemModel::local_filesystem();
-		}
 
-		const std::shared_ptr<FrameGraphResourcePool>& resource_pool() const {
-			return _resource_pool;
-		}
+		void set_scene_view(SceneView* scene);
+		void remove_scene_view(SceneView* scene);
 
-		Settings& settings() {
-			return _setting;
-		}
+		SceneView& scene_view();
+		SceneView& default_scene_view();
 
-		SceneData& scene() {
-			return _scene;
-		}
+		ecs::EntityWorld& world();
 
-		Selection& selection() {
-			return _selection;
-		}
 
-		AssetLoader& loader() {
-			return _loader;
-		}
+		const FileSystemModel* filesystem() const;
+		const std::shared_ptr<FrameGraphResourcePool>& resource_pool() const;
 
-		Ui& ui() {
-			return _ui;
-		}
 
-		ThumbmailCache& thumbmail_cache() {
-			return _thumb_cache;
-		}
-
-		PickingManager& picking_manager() {
-			return _picking_manager;
-		}
-
-		AssetStore& asset_store() {
-			return *_asset_store;
-		}
-
-		ecs::EntityWorld& world() {
-			return _world;
-		}
-
+		Settings& settings();
+		Selection& selection();
+		AssetLoader& loader();
+		Ui& ui();
+		ThumbmailCache& thumbmail_cache();
+		PickingManager& picking_manager();
+		AssetStore& asset_store();
 
 	private:
 		std::unique_ptr<FileSystemModel> _filesystem;
@@ -111,8 +87,10 @@ class EditorContext : NonMovable, public DeviceLinked {
 		std::shared_ptr<AssetStore> _asset_store;
 		AssetLoader _loader;
 
+		SceneView _default_scene_view;
+		SceneView* _scene_view = nullptr;
+
 		Settings _setting;
-		SceneData _scene;
 		Selection _selection;
 		Ui _ui;
 		ThumbmailCache _thumb_cache;

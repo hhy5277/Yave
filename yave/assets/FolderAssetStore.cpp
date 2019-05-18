@@ -151,7 +151,7 @@ AssetStore::Result<> FolderAssetStore::write_index() const {
 		return core::Err(ErrorType::FilesytemError);
 	}
 
-	serde2::WritableArchive arc(file.unwrap());
+	WritableAssetArchive arc(file.unwrap());
 	if(!arc(_id_factory)) {
 		log_msg("Unable to write id data.", Log::Error);
 		return core::Err(ErrorType::FilesytemError);

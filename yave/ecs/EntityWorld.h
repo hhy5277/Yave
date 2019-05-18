@@ -26,7 +26,7 @@ SOFTWARE.
 #include "EntityIdPool.h"
 #include "View.h"
 
-#include <yave/assets/AssetReadableArchive.h>
+#include <yave/assets/AssetArchive.h>
 #include <y/core/Result.h>
 
 #include <unordered_map>
@@ -56,8 +56,8 @@ class EntityWorld : NonCopyable {
 
 
 
-		serde2::Result serialize(serde2::WritableArchive& writer) const;
-		serde2::Result deserialize(AssetReadableArchive& reader);
+		serde2::Result serialize(WritableAssetArchive& writer) const;
+		serde2::Result deserialize(ReadableAssetArchive& reader);
 
 
 

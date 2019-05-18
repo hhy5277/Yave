@@ -60,11 +60,11 @@ struct AssetTraits<Material> {
 	static Result load_asset(io::ReaderRef reader, AssetLoader& loader) noexcept {
 		return SimpleMaterialData::load(reader, loader).map([&](auto&& data) { return Material(loader.device(), std::move(data)); });
 	}
-	static Result load_asset(AssetReadableArchive& arc) noexcept {
+	static Result load_asset(ReadableAssetArchive& arc) noexcept {
 		return SimpleMaterialData::load(arc).map([&](auto&& data) { return Material(arc.loader().device(), std::move(data)); });
 	}
 	static Result load_asset(io2::ReaderRef reader, AssetLoader& loader) noexcept {
-		AssetReadableArchive ar(reader, loader);
+		ReadableAssetArchive ar(reader, loader);
 		return load_asset(ar);
 	}
 };

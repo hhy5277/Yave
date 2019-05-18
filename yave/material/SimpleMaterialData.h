@@ -53,7 +53,7 @@ class SimpleMaterialData {
 		y_serde_ser_compat()
 
 		static core::Result<SimpleMaterialData> load(io::ReaderRef reader, AssetLoader& loader) noexcept;
-		static core::Result<SimpleMaterialData> load(AssetReadableArchive& arc) noexcept;
+		static core::Result<SimpleMaterialData> load(ReadableAssetArchive& arc) noexcept;
 
 
 		SimpleMaterialData& set_texture(Textures type, AssetPtr<Texture> tex);

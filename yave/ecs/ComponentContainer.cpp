@@ -50,7 +50,7 @@ void register_container_type(RegisteredContainerType* type, u64 type_id, create_
 	registered_types_head = type;
 }
 
-serde2::Result serialize_container(serde2::WritableArchive& writer, ComponentContainerBase* container) {
+serde2::Result serialize_container(WritableAssetArchive& writer, ComponentContainerBase* container) {
 	u64 type_id = container->serialization_type_id();
 	if(!writer(u64(type_hash<MagicNumber>())) || !writer(u64(type_id))) {
 		return core::Err();
@@ -58,7 +58,7 @@ serde2::Result serialize_container(serde2::WritableArchive& writer, ComponentCon
 	return container->serialize(writer);
 }
 
-std::unique_ptr<ComponentContainerBase> deserialize_container(AssetReadableArchive& reader) {
+std::unique_ptr<ComponentContainerBase> deserialize_container(ReadableAssetArchive& reader) {
 	u64 magic = 0;
 	u64 type_id = 0;
 	if(!reader(magic) || magic != type_hash<MagicNumber>() || !reader(type_id)) {

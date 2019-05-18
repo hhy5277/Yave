@@ -53,16 +53,16 @@ EntityView::EntityView(ContextPtr cptr) :
 }
 
 void EntityView::add_light() {
-	Scene::Ptr<Light> light = std::make_unique<Light>(Light::Point);
+	/*Scene::Ptr<Light> light = std::make_unique<Light>(Light::Point);
 	context()->selection().set_selected(light.get());
 
 	light->radius() = 100.0f;
 	light->intensity() = 10000.0;
-	context()->scene().scene().lights() << std::move(light);
+	context()->scene().scene().lights() << std::move(light);*/
 }
 
 void EntityView::paint_ui(CmdBufferRecorder&, const FrameToken&) {
-	if(ImGui::Button(ICON_FA_PLUS, math::Vec2(24))) {
+	/*if(ImGui::Button(ICON_FA_PLUS, math::Vec2(24))) {
 		ImGui::OpenPopup("Add entity");
 	}
 
@@ -109,7 +109,7 @@ void EntityView::paint_ui(CmdBufferRecorder&, const FrameToken&) {
 			}
 		}
 		ImGui::TreePop();
-	}
+	}*/
 
 }
 

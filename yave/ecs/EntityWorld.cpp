@@ -57,7 +57,7 @@ core::String EntityWorld::type_name(ComponentTypeIndex index) const {
 	return y::detail::demangle_type_name(index.name());
 }
 
-serde2::Result EntityWorld::serialize(serde2::WritableArchive& writer) const {
+serde2::Result EntityWorld::serialize(WritableAssetArchive& writer) const {
 	if(!writer(u64(_entities.size()))) {
 		return core::Err();
 	}
@@ -78,7 +78,7 @@ serde2::Result EntityWorld::serialize(serde2::WritableArchive& writer) const {
 	return core::Ok();
 }
 
-serde2::Result EntityWorld::deserialize(AssetReadableArchive& reader) {
+serde2::Result EntityWorld::deserialize(ReadableAssetArchive& reader) {
 	*this = EntityWorld();
 
 	u64 entity_count = 0;

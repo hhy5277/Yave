@@ -212,7 +212,7 @@ void ResourceBrowser::paint_context_menu() {
 		if(ImGui::Selectable("Create material")) {
 			SimpleMaterialData material;
 			io2::Buffer buffer;
-			if(material.serialize(serde2::WritableArchive(buffer))) {
+			if(material.serialize(WritableAssetArchive(buffer))) {
 				AssetStore& store = context()->asset_store();
 				if(!store.import(buffer, store.filesystem()->join(_current->full_path, "new material"))) {
 					log_msg("Unable to import new material.", Log::Error);

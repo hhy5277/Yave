@@ -47,7 +47,7 @@ core::Result<SimpleMaterialData> SimpleMaterialData::load(io::ReaderRef reader, 
 	return core::Err();
 }
 
-core::Result<SimpleMaterialData> SimpleMaterialData::load(AssetReadableArchive& arc) noexcept {
+core::Result<SimpleMaterialData> SimpleMaterialData::load(ReadableAssetArchive& arc) noexcept {
 	SimpleMaterialHeader header;
 	if(!arc(header)) {
 		return core::Err();

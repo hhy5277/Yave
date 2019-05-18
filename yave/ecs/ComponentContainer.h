@@ -25,7 +25,7 @@ SOFTWARE.
 #include "ecs.h"
 #include "EntityIdPool.h"
 
-#include <yave/assets/AssetReadableArchive.h>
+#include <yave/assets/AssetArchive.h>
 #include <y/core/SparseVector.h>
 
 
@@ -35,7 +35,7 @@ namespace ecs {
 class ComponentContainerBase;
 
 namespace detail {
-using create_container_t = std::unique_ptr<ComponentContainerBase> (*)(AssetReadableArchive&);
+using create_container_t = std::unique_ptr<ComponentContainerBase> (*)(ReadableAssetArchive&);
 class RegisteredContainerType {
 	public:
 		u64 type_id() const {
@@ -44,8 +44,8 @@ class RegisteredContainerType {
 	private:
 		friend void register_container_type(RegisteredContainerType*, usize, create_container_t);
 		friend usize registered_types_count();
-		friend serde2::Result serialize_container(serde2::WritableArchive&, ComponentContainerBase*);
-		friend std::unique_ptr<ComponentContainerBase> deserialize_container(AssetReadableArchive&);
+		friend serde2::Result serialize_container(WritableAssetArchive&, ComponentContainerBase*);
+		friend std::unique_ptr<ComponentContainerBase> deserialize_container(ReadableAssetArchive&);
 
 		u64 _type_id = 0;
 		create_container_t _create_container = nullptr;
@@ -54,8 +54,8 @@ class RegisteredContainerType {
 
 usize registered_types_count();
 void register_container_type(RegisteredContainerType* type, u64 type_id, create_container_t create_container);
-serde2::Result serialize_container(serde2::WritableArchive& writer, ComponentContainerBase* container);
-std::unique_ptr<ComponentContainerBase> deserialize_container(AssetReadableArchive& reader);
+serde2::Result serialize_container(WritableAssetArchive& writer, ComponentContainerBase* container);
+std::unique_ptr<ComponentContainerBase> deserialize_container(ReadableAssetArchive& reader);
 
 template<typename T>
 void register_container_type(RegisteredContainerType* type, create_container_t create_container) {
@@ -169,9 +169,9 @@ class ComponentContainerBase : NonMovable {
 
 
 	private:
-		friend serde2::Result detail::serialize_container(serde2::WritableArchive&, ComponentContainerBase*);
+		friend serde2::Result detail::serialize_container(WritableAssetArchive&, ComponentContainerBase*);
 
-		virtual serde2::Result serialize(serde2::WritableArchive&) const = 0;
+		virtual serde2::Result serialize(WritableAssetArchive&) const = 0;
 		virtual u64 serialization_type_id() const = 0;
 
 };
@@ -219,7 +219,7 @@ class ComponentContainer final : public ComponentContainerBase {
 			return _registerer->type.type_id();
 		}
 
-		serde2::Result serialize(serde2::WritableArchive& writer) const override {
+		serde2::Result serialize(WritableAssetArchive& writer) const override {
 			if constexpr(is_serde_compatible) {
 				if(!writer(u64(_components.size()))) {
 					return core::Err();
@@ -233,7 +233,7 @@ class ComponentContainer final : public ComponentContainerBase {
 			return core::Ok();
 		}
 
-		serde2::Result deserialize(AssetReadableArchive& reader) {
+		serde2::Result deserialize(ReadableAssetArchive& reader) {
 			if constexpr(is_serde_compatible) {
 				u64 component_count = 0;
 				if(!reader(component_count)) {
@@ -249,7 +249,7 @@ class ComponentContainer final : public ComponentContainerBase {
 			return core::Ok();
 		}
 
-		static std::unique_ptr<ComponentContainerBase> deserialized(AssetReadableArchive& reader) {
+		static std::unique_ptr<ComponentContainerBase> deserialized(ReadableAssetArchive& reader) {
 			auto container = std::make_unique<ComponentContainer<T>>();
 			if(container->deserialize(reader)) {
 				return container;

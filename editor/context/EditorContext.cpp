@@ -35,7 +35,7 @@ EditorContext::EditorContext(DevicePtr dptr) :
 		_resource_pool(std::make_shared<FrameGraphResourcePool>(device())),
 		_asset_store(std::make_shared<FolderAssetStore>()),
 		_loader(device(), _asset_store),
-		_scene(this),
+		_scene_view(&_default_scene_view),
 		_ui(this),
 		_thumb_cache(this),
 		_picking_manager(this) {
@@ -47,7 +47,6 @@ EditorContext::~EditorContext() {
 void EditorContext::flush_reload() {
 	defer([this]() {
 		y_profile_zone("flush reload");
-		_scene.flush_reload();
 		_selection.flush_reload();
 		_thumb_cache.clear();
 	});
@@ -75,6 +74,70 @@ void EditorContext::flush_deferred() {
 	}
 	_world.flush();
 }
+
+void EditorContext::set_scene_view(SceneView* scene) {
+	if(!scene) {
+		_scene_view = &_default_scene_view;
+	} else {
+		_scene_view = scene;
+	}
+}
+
+void EditorContext::remove_scene_view(SceneView* scene) {
+	if(_scene_view == scene) {
+		set_scene_view(nullptr);
+	}
+}
+
+SceneView& EditorContext::scene_view() {
+	return *_scene_view;
+}
+
+SceneView& EditorContext::default_scene_view() {
+	return _default_scene_view;
+}
+
+ecs::EntityWorld& EditorContext::world() {
+	return _world;
+}
+
+const FileSystemModel* EditorContext::filesystem() const {
+	return _filesystem.get() ? _filesystem.get() : FileSystemModel::local_filesystem();
+}
+
+const std::shared_ptr<FrameGraphResourcePool>& EditorContext::resource_pool() const {
+	return _resource_pool;
+}
+
+Settings& EditorContext::settings() {
+	return _setting;
+}
+
+Selection& EditorContext::selection() {
+	return _selection;
+}
+
+AssetLoader& EditorContext::loader() {
+	return _loader;
+}
+
+Ui& EditorContext::ui() {
+	return _ui;
+}
+
+ThumbmailCache& EditorContext::thumbmail_cache() {
+	return _thumb_cache;
+}
+
+PickingManager& EditorContext::picking_manager() {
+	return _picking_manager;
+}
+
+AssetStore& EditorContext::asset_store() {
+	return *_asset_store;
+}
+
+
 
 
 }
