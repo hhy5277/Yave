@@ -22,7 +22,7 @@ SOFTWARE.
 #ifndef Y_SERDE2_HELPER_H
 #define Y_SERDE2_HELPER_H
 
-#include "serde.h"
+#include <y/utils.h>
 
 namespace y {
 
@@ -34,6 +34,10 @@ class Vector;
 
 
 namespace serde2 {
+
+using Result = core::Result<void>;
+
+
 
 // -------------------------------------- deserialize --------------------------------------
 namespace helper {

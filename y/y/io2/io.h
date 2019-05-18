@@ -29,21 +29,26 @@ SOFTWARE.
 namespace y {
 namespace io2 {
 
-using ReadResult = core::Result<usize, usize>;
+using ReadUpToResult = core::Result<usize, usize>;
+using ReadResult = core::Result<void, usize>;
 using WriteResult = core::Result<void, usize>;
 using FlushResult = core::Result<void>;
 
-class Reader {
+class Reader final {
 	struct InnerBase {
 		virtual ~InnerBase() = default;
 
 		virtual bool at_end() const = 0;
-		virtual ReadResult read(u8* data, usize max_bytes) = 0;
-		virtual ReadResult read_all(core::Vector<u8>& data) = 0;
+		virtual ReadResult read(u8* data, usize bytes) = 0;
+		virtual ReadUpToResult read_up_to(u8* data, usize max_bytes) = 0;
+		virtual ReadUpToResult read_all(core::Vector<u8>& data) = 0;
 	};
 
 	template<typename T>
 	struct Inner : InnerBase {
+		Inner(T& t) : _inner(std::move(t)) {
+		}
+
 		Inner(T&& t) : _inner(std::move(t)) {
 		}
 
@@ -51,13 +56,19 @@ class Reader {
 			return _inner.at_end();
 		}
 
-		ReadResult read(u8* data, usize max_bytes) override {
-			return _inner.read(data, max_bytes);
+		ReadResult read(u8* data, usize bytes) override {
+			return _inner.read(data, bytes);
 		}
 
-		ReadResult read_all(core::Vector<u8>& data) override {
+		ReadUpToResult read_up_to(u8* data, usize max_bytes) override {
+			return _inner.read_up_to(data, max_bytes);
+		}
+
+
+		ReadUpToResult read_all(core::Vector<u8>& data) override {
 			return _inner.read_all(data);
 		}
+
 
 		T _inner;
 	};
@@ -71,11 +82,15 @@ class Reader {
 			return _inner.at_end();
 		}
 
-		ReadResult read(u8* data, usize max_bytes) override {
-			return _inner.read(data, max_bytes);
+		ReadResult read(u8* data, usize bytes) override {
+			return _inner.read(data, bytes);
 		}
 
-		ReadResult read_all(core::Vector<u8>& data) override {
+		ReadUpToResult read_up_to(u8* data, usize max_bytes) override {
+			return _inner.read_up_to(data, max_bytes);
+		}
+
+		ReadUpToResult read_all(core::Vector<u8>& data) override {
 			return _inner.read_all(data);
 		}
 
@@ -84,47 +99,88 @@ class Reader {
 
 
 	public:
-		template<typename T>
-		Reader(T&& t) : _inner(std::make_unique<Inner<T>>(y_fwd(t)))  {
+		Reader() = default;
+
+		template<typename T, typename = std::enable_if_t<!std::is_same_v<std::decay_t<T>, Reader>>>
+		Reader(T&& t) : _storage(std::make_unique<Inner<remove_cvref_t<T>>>(y_fwd(t))), _ref(_storage.get())  {
 		}
 
-		template<typename T>
-		explicit Reader(T& t) : _inner(std::make_unique<NotOwner<T>>(t))  {
+		template<typename T, typename = std::enable_if_t<!std::is_same_v<std::decay_t<T>, Reader>>>
+		Reader(T& t) : _storage(std::make_unique<NotOwner<remove_cvref_t<T>>>(t)), _ref(_storage.get()) {
 		}
 
-		Reader(Reader&&) = default;
-		Reader& operator=(Reader&&) = default;
+
+		Reader(Reader&& other) {
+			swap(other);
+		}
+
+		Reader& operator=(Reader&& other) {
+			swap(other);
+			return *this;
+		}
+
+		Reader(const Reader& other) : _ref(other._ref) {
+		}
+
+		Reader& operator=(const Reader& other) {
+			_storage = nullptr;
+			_ref = other._ref;
+			return *this;
+		}
+
 
 		bool at_end() const {
-			return _inner->at_end();
+			return _ref->at_end();
 		}
 
-		ReadResult read(u8* data, usize max_bytes) {
-			return _inner->read(data, max_bytes);
+		ReadResult read(u8* data, usize bytes) {
+			return _ref->read(data, bytes);
 		}
 
-		ReadResult read_all(core::Vector<u8>& data) {
-			return _inner->read_all(data);
+		ReadUpToResult read_up_to(u8* data, usize max_bytes) {
+			return _ref->read_up_to(data, max_bytes);
+		}
+
+		ReadUpToResult read_all(core::Vector<u8>& data) {
+			return _ref->read_all(data);
 		}
 
 		template<typename T>
-		ReadResult read_one(T& t) {
+		core::Result<void, usize> read_one(T& t) {
 			static_assert(std::is_trivially_copyable_v<T>);
 			return read(reinterpret_cast<u8*>(&t), sizeof(T));
 		}
 
 		template<typename T>
-		ReadResult read_array(T* data, usize count) {
+		core::Result<remove_cvref_t<T>, usize> read_one() {
+			remove_cvref_t<T> t;
+			if(auto r = read_one(t); !r) {
+				return core::Err(r.error());
+			}
+			return core::Ok(std::move(t));
+		}
+
+
+		template<typename T>
+		core::Result<void, usize> read_array(T* data, usize count) {
 			static_assert(std::is_trivially_copyable_v<T>);
 			return read(reinterpret_cast<u8*>(data), sizeof(T) * count);
 		}
 
 	private:
-		std::unique_ptr<InnerBase> _inner;
+		void swap(Reader& other) {
+			std::swap(_ref, other._ref);
+			std::swap(_storage, other._storage);
+		}
+
+		std::unique_ptr<InnerBase> _storage;
+		InnerBase* _ref = nullptr;
 };
 
+using ReaderRef = Reader;
 
-class Writer {
+
+class Writer final {
 	struct InnerBase {
 		virtual ~InnerBase() = default;
 
@@ -134,6 +190,9 @@ class Writer {
 
 	template<typename T>
 	struct Inner : InnerBase {
+		Inner(T& t) : _inner(std::move(t)) {
+		}
+
 		Inner(T&& t) : _inner(std::move(t)) {
 		}
 
@@ -188,7 +247,7 @@ class Writer {
 		}
 
 		template<typename T>
-		WriteResult write_array(T* data, usize count) {
+		WriteResult write_array(const T* data, usize count) {
 			static_assert(std::is_trivially_copyable_v<T>);
 			return write(reinterpret_cast<const u8*>(data), sizeof(T) * count);
 		}
@@ -196,6 +255,7 @@ class Writer {
 	private:
 		std::unique_ptr<InnerBase> _inner;
 };
+
 
 }
 }

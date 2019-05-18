@@ -50,18 +50,20 @@ void register_container_type(RegisteredContainerType* type, u64 type_id, create_
 	registered_types_head = type;
 }
 
-void serialize_container(io::WriterRef writer, ComponentContainerBase* container) {
+serde2::Result serialize_container(serde2::WritableArchive& writer, ComponentContainerBase* container) {
 	u64 type_id = container->serialization_type_id();
-	writer->write_one(u64(type_hash<MagicNumber>()));
-	writer->write_one(u64(type_id));
-	container->serialize(writer);
+	if(!writer(u64(type_hash<MagicNumber>())) || !writer(u64(type_id))) {
+		return core::Err();
+	}
+	return container->serialize(writer);
 }
 
-std::unique_ptr<ComponentContainerBase> deserialize_container(io::ReaderRef reader) {
-	if(reader->read_one<u64>() != type_hash<MagicNumber>()) {
-		y_throw("Invalid magic number");
+std::unique_ptr<ComponentContainerBase> deserialize_container(AssetReadableArchive& reader) {
+	u64 magic = 0;
+	u64 type_id = 0;
+	if(!reader(magic) || magic != type_hash<MagicNumber>() || !reader(type_id)) {
+		return nullptr;
 	}
-	u64 type_id = reader->read_one<u64>();
 	for(auto* i = registered_types_head; i; i = i->_next) {
 		if(i->_type_id == type_id) {
 			if(i->_create_container) {
@@ -72,7 +74,7 @@ std::unique_ptr<ComponentContainerBase> deserialize_container(io::ReaderRef read
 			}
 		}
 	}
-	y_throw("Type was not registered.");
+	return nullptr;
 }
 
 }

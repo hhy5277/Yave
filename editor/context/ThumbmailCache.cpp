@@ -116,6 +116,8 @@ void ThumbmailCache::request_thumbmail(AssetId id) {
 						return [=, m = std::move(mesh.unwrap())](CmdBufferRecorder& rec) {
 								return render_thumbmail(rec, id, m, device()->device_resources()[DeviceResources::EmptyMaterial]);
 							};
+					} else {
+						log_msg("Unable to load static mesh.", Log::Error);
 					}
 				break;
 
@@ -124,12 +126,16 @@ void ThumbmailCache::request_thumbmail(AssetId id) {
 						return [=, m = std::move(mat.unwrap())](CmdBufferRecorder& rec) {
 								return render_thumbmail(rec, id, rec.device()->device_resources()[DeviceResources::SphereMesh], m);
 							};
+					} else {
+						log_msg("Unable to load material.", Log::Error);
 					}
 				break;
 
 				case AssetType::Image:
 					if(auto tex = context()->loader().load<Texture>(id)) {
 						return [=, t = std::move(tex.unwrap())](CmdBufferRecorder& rec) { return render_thumbmail(rec, t); };
+					} else {
+						log_msg("Unable to load image.", Log::Error);
 					}
 				break;
 

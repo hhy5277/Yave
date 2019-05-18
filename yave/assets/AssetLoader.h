@@ -24,7 +24,8 @@ SOFTWARE.
 
 #include <yave/device/DeviceLinked.h>
 #include <y/core/String.h>
-#include <y/serde/serde.h>
+
+#include <yave/utils/serde.h>
 #include <y/io/Buffer.h>
 
 #include "AssetPtr.h"

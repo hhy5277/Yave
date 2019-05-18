@@ -60,7 +60,8 @@ struct AssetId {
 			return _id != other._id;
 		}
 
-		y_serde(_id)
+		y_serde2(_id)
+		y_serde_compat()
 
 	private:
 		friend class AssetIdFactory;

@@ -24,75 +24,44 @@ SOFTWARE.
 
 #include <y/core/Result.h>
 #include <y/core/Functor.h>
+#include <y/utils/recmacros.h>
 
-#define Y_FIRST(a, ...) a
-#define Y_SECOND(a, b, ...) b
-
-#define Y_EMPTY()
-
-#define Y_DEFER1(m) m Y_EMPTY()
-#define Y_DEFER2(m) m Y_EMPTY Y_EMPTY()()
-#define Y_DEFER3(m) m Y_EMPTY Y_EMPTY Y_EMPTY()()()
-#define Y_DEFER4(m) m Y_EMPTY Y_EMPTY Y_EMPTY Y_EMPTY()()()()
-
-#define Y_IS_PROBE(...) Y_SECOND(__VA_ARGS__, 0)
-#define Y_PROBE() ~, 1
-
-#define Y_CAT(a,b) a ## b
-
-#define Y_NOT(x) Y_IS_PROBE(Y_CAT(Y_NOT_, x))
-#define Y_NOT_0 Y_PROBE()
-
-#define Y_BOOL(x) Y_NOT(Y_NOT(x))
-
-#define IF_ELSE(condition) _IF_ELSE(Y_BOOL(condition))
-#define _IF_ELSE(condition) Y_CAT(_IF_, condition)
-
-#define _IF_1(...) __VA_ARGS__ _IF_1_ELSE
-#define _IF_0(...)             _IF_0_ELSE
-
-#define _IF_1_ELSE(...)
-#define _IF_0_ELSE(...) __VA_ARGS__
-
-#define Y_HAS_ARGS(...) Y_BOOL(Y_FIRST(Y_END_OF_ARGUMENTS __VA_ARGS__)())
-#define Y_END_OF_ARGUMENTS() 0
-
-
-#define Y_MACRO_MAP(m, first, ...)									\
-	m(first)														\
-	IF_ELSE(Y_HAS_ARGS(__VA_ARGS__))								\
-		(Y_DEFER2(Y_MACRO_MAP_)()(m, __VA_ARGS__))					\
-		(/* Do nothing, just terminate */)
-	
-	
-#define Y_MACRO_MAP_() Y_MACRO_MAP
+#include "archives.h"
 
 namespace y {
 namespace serde2 {
 
-using Result = core::Result<void>;
 
-#define y_serde2_unfold_arg(N)										\
+#define y_serde2_unfold_arg(N)									\
 	if(!_y_serde_arc(N)) { return y::core::Err(); }
 
 
-//__VA_OPT__(DEFER(y_serde2_unfold_args)()(__VA_ARGS__))
 
-#define y_serialize2(...)											\
-	template<typename Arc>											\
-	y::serde2::Result serialize(Arc&& _y_serde_arc) const {			\
-		return _y_serde_arc(__VA_ARGS__);							\
+#define y_serialize2(...)																									\
+	template<typename Arc, typename = std::enable_if_t<std::is_base_of_v<y::serde2::WritableArchive, std::decay_t<Arc>>>>	\
+	y::serde2::Result serialize(Arc&& _y_serde_arc) const noexcept {														\
+		try {																												\
+			Y_REC_MACRO(Y_MACRO_MAP(y_serde2_unfold_arg, __VA_ARGS__))														\
+		} catch(...) {																										\
+			return core::Err();																								\
+		}																													\
+		return y::core::Ok();																								\
 	}
 
-#define y_deserialize2(...)											\
-	template<typename Arc>											\
-	y::serde2::Result deserialize(Arc&& _y_serde_arc) {				\
-		Y_REC_MACRO(Y_MACRO_MAP(y_serde2_unfold_arg, __VA_ARGS__))	\
-		return y::core::Ok();										\
+#define y_deserialize2(...)																									\
+	template<typename Arc, typename = std::enable_if_t<std::is_base_of_v<y::serde2::ReadableArchive, std::decay_t<Arc>>>>	\
+	y::serde2::Result deserialize(Arc&& _y_serde_arc) noexcept {															\
+		try {																												\
+			Y_REC_MACRO(Y_MACRO_MAP(y_serde2_unfold_arg, __VA_ARGS__))														\
+		} catch(...) {																										\
+			return core::Err();																								\
+		}																													\
+		return y::core::Ok();																								\
 	}
 
-#define y_serde2(...)												\
-	y_serialize2(__VA_ARGS__)										\
+
+#define y_serde2(...)											\
+	y_serialize2(__VA_ARGS__)									\
 	y_deserialize2(__VA_ARGS__)
 
 
@@ -160,24 +129,39 @@ class Function {
 		Result deserialize(Arc&& ar) {
 			using ret_t = typename function_traits<T>::return_type;
 			using args_t = typename function_traits<T>::argument_pack ;
-			if constexpr(std::is_convertible_v<ret_t, Result> && std::is_convertible_v<decltype(ar), args_t>) {
+			constexpr bool ret_result = std::is_convertible_v<ret_t, Result>;
+			if constexpr(ret_result && std::is_convertible_v<decltype(ar), args_t>) {
 				return _t(ar);
 			} else {
 				args_t args;
 				if(!ar(args)) {
 					return core::Err();
 				}
-				std::apply(_t, std::move(args));
-				return core::Ok();
+				if constexpr(ret_result) {
+					return std::apply(_t, std::move(args));
+				} else {
+					std::apply(_t, std::move(args));
+					return core::Ok();
+				}
 			}
 		}
 
 		template<typename Arc>
-		Result serialize(Arc&& ar) {
-			if constexpr(std::is_convertible_v<T&&, core::Function<Result(Arc&)>>) {
+		Result serialize(Arc&& ar) const {
+			using ret_t = typename function_traits<T>::return_type;
+			using args_t = typename function_traits<T>::argument_pack;
+			constexpr bool ret_result = std::is_convertible_v<ret_t, Result>;
+			if constexpr(ret_result && std::is_convertible_v<decltype(ar), args_t>) {
 				return _t(ar);
 			} else {
-				return ar(_t());
+				if constexpr(ret_result) {
+					return _t();
+				} else if constexpr(std::is_void_v<ret_t>) {
+					_t();
+					return core::Ok();
+				} else {
+					return ar(_t());
+				}
 			}
 		}
 
@@ -201,7 +185,7 @@ class Condition : Function<T> {
 		}
 
 		template<typename Arc>
-		Result serialize(Arc&& ar) {
+		Result serialize(Arc&& ar) const {
 			if(_c) {
 				return Function<T>::serialize(ar);
 			}
@@ -216,7 +200,7 @@ class Condition : Function<T> {
 template<typename T>
 class Array {
 	public:
-		Array(usize s, T&& t) : _s(s), _t(y_fwd(t)) {
+		Array(usize s, T* t) : _s(s), _t(y_fwd(t)) {
 		}
 
 		template<typename Arc>
@@ -225,14 +209,14 @@ class Array {
 		}
 
 		template<typename Arc>
-		Result serialize(Arc&& ar) {
+		Result serialize(Arc&& ar) const {
 			return ar.array(_t, _s);
 		}
 
 
 	private:
 		usize _s;
-		T _t;
+		T* _t;
 };
 
 }
@@ -253,9 +237,28 @@ detail::Condition<T> cond(bool c, T&& t) {
 }
 
 template<typename T>
-detail::Array<T> array(usize s, T&& t) {
-	return detail::Array<T>(s, y_fwd(t));
+detail::Array<T> array(usize s, T* t) {
+	return detail::Array<T>(s, t);
 }
+
+
+
+
+// -------------------------------------- tests --------------------------------------
+namespace {
+struct Serial {
+	u32 i;
+	y_serde2(i)
+};
+static_assert(helper::has_serialize_v<WritableArchive, Serial>);
+static_assert(helper::has_serialize_v<WritableArchive, Serial&>);
+static_assert(helper::has_serialize_v<WritableArchive, const Serial&>);
+
+static_assert(helper::has_deserialize_v<ReadableArchive, Serial>);
+static_assert(helper::has_deserialize_v<ReadableArchive, Serial&>);
+static_assert(helper::has_deserialize_v<ReadableArchive, Serial&&>);
+}
+
 
 }
 }

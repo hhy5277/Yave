@@ -25,7 +25,8 @@ SOFTWARE.
 #include <editor/editor.h>
 #include <yave/ecs/ecs.h>
 #include <y/core/String.h>
-#include <y/serde/serde.h>
+
+#include <yave/utils/serde.h>
 
 namespace editor {
 
@@ -37,7 +38,8 @@ class EditorComponent {
 		const core::String& name() const;
 		bool is_visible() const;
 
-		y_serde(_name, _visible)
+		y_serde2(_name, _visible)
+		y_serde_compat()
 
 	private:
 		core::String _name;

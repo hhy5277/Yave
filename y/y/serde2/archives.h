@@ -22,8 +22,8 @@ SOFTWARE.
 #ifndef Y_SERDE2_ARCHIVES_H
 #define Y_SERDE2_ARCHIVES_H
 
-#include "serde.h"
 #include "helper.h"
+#include <y/core/String.h>
 
 namespace y {
 
@@ -100,6 +100,7 @@ class WritableArchive {
 
 		template<typename T>
 		Result array(const T* t, usize n) {
+			log_msg(fmt("% x %", type_name<T>(), n));
 			return helper::serialize_array(*this, t, n);
 		}
 
@@ -126,22 +127,6 @@ class WritableArchive {
 
 		io2::Writer _writer;
 };
-
-
-// -------------------------------------- tests --------------------------------------
-namespace {
-struct Serial {
-	u32 i;
-	y_serde2(i)
-};
-static_assert(helper::has_serialize_v<WritableArchive, Serial>);
-static_assert(helper::has_serialize_v<WritableArchive, Serial&>);
-static_assert(helper::has_serialize_v<WritableArchive, const Serial&>);
-
-static_assert(helper::has_deserialize_v<ReadableArchive, Serial>);
-static_assert(helper::has_deserialize_v<ReadableArchive, Serial&>);
-static_assert(helper::has_deserialize_v<ReadableArchive, Serial&&>);
-}
 
 
 }

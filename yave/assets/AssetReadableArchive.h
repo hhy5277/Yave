@@ -19,44 +19,36 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 **********************************/
+#ifndef YAVE_ASSETS_ASSETREADABLEARCHIVE_H
+#define YAVE_ASSETS_ASSETREADABLEARCHIVE_H
 
-#include "AssetLoader.h"
+#include "AssetId.h"
 
-#include <y/io2/File.h>
+#include <yave/utils/serde.h>
 
 namespace yave {
 
-AssetLoader::AssetLoader(DevicePtr dptr, const std::shared_ptr<AssetStore>& store) : DeviceLinked(dptr), _store(store) {
-}
+class AssetLoader;
 
-AssetStore& AssetLoader::store() {
-	return *_store;
-}
+class AssetReadableArchive : public serde2::ReadableArchive {
 
-const AssetStore& AssetLoader::store() const {
-	return *_store;
-}
-
-bool AssetLoader::forget(AssetId id) {
-	std::unique_lock lock(_lock);
-	for(auto& loader : _loaders) {
-		if(loader.second->forget(id)) {
-			return true;
+	public:
+		AssetReadableArchive(serde2::ReadableArchive&& ar, AssetLoader& loader) :
+				serde2::ReadableArchive(std::move(ar)),
+				_loader(loader) {
 		}
-	}
-	return false;
-}
 
-core::Result<AssetId> AssetLoader::load_or_import(std::string_view name, std::string_view import_from) {
-	if(auto id = _store->id(name)) {
-		return id;
-	}
+		AssetLoader& loader() {
+			return _loader;
+		}
 
-	if(auto file = io2::File::open(import_from)) {
-		return _store->import(file.unwrap(), name);
-	}
+	private:
+		AssetLoader& _loader;
 
-	return core::Err();
-}
+};
 
 }
+
+
+
+#endif // YAVE_ASSETS_ASSETREADABLEARCHIVE_H

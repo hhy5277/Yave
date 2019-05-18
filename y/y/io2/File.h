@@ -43,6 +43,8 @@ class File : NonCopyable {
 		static core::Result<File> create(const core::String& name);
 		static core::Result<File> open(const core::String& name);
 
+		static  core::Result<void> copy(ReaderRef src, const core::String& dst);
+
 		usize size() const;
 		usize remaining() const;
 
@@ -51,8 +53,9 @@ class File : NonCopyable {
 
 		void seek(usize byte);
 
-		ReadResult read(u8* data, usize max_bytes);
-		ReadResult read_all(core::Vector<u8>& data);
+		ReadResult read(u8* data, usize bytes);
+		ReadUpToResult read_up_to(u8* data, usize max_bytes);
+		ReadUpToResult read_all(core::Vector<u8>& data);
 
 		WriteResult write(const u8* data, usize bytes);
 		FlushResult flush();

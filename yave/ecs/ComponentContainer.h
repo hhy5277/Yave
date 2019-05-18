@@ -25,9 +25,9 @@ SOFTWARE.
 #include "ecs.h"
 #include "EntityIdPool.h"
 
+#include <yave/assets/AssetReadableArchive.h>
 #include <y/core/SparseVector.h>
 
-#include <y/serde/serde.h>
 
 namespace yave {
 namespace ecs {
@@ -35,7 +35,7 @@ namespace ecs {
 class ComponentContainerBase;
 
 namespace detail {
-using create_container_t = std::unique_ptr<ComponentContainerBase> (*)(io::ReaderRef);
+using create_container_t = std::unique_ptr<ComponentContainerBase> (*)(AssetReadableArchive&);
 class RegisteredContainerType {
 	public:
 		u64 type_id() const {
@@ -44,8 +44,8 @@ class RegisteredContainerType {
 	private:
 		friend void register_container_type(RegisteredContainerType*, usize, create_container_t);
 		friend usize registered_types_count();
-		friend void serialize_container(io::WriterRef, ComponentContainerBase*);
-		friend std::unique_ptr<ComponentContainerBase> deserialize_container(io::ReaderRef);
+		friend serde2::Result serialize_container(serde2::WritableArchive&, ComponentContainerBase*);
+		friend std::unique_ptr<ComponentContainerBase> deserialize_container(AssetReadableArchive&);
 
 		u64 _type_id = 0;
 		create_container_t _create_container = nullptr;
@@ -54,8 +54,8 @@ class RegisteredContainerType {
 
 usize registered_types_count();
 void register_container_type(RegisteredContainerType* type, u64 type_id, create_container_t create_container);
-void serialize_container(io::WriterRef writer, ComponentContainerBase* container);
-std::unique_ptr<ComponentContainerBase> deserialize_container(io::ReaderRef reader);
+serde2::Result serialize_container(serde2::WritableArchive& writer, ComponentContainerBase* container);
+std::unique_ptr<ComponentContainerBase> deserialize_container(AssetReadableArchive& reader);
 
 template<typename T>
 void register_container_type(RegisteredContainerType* type, create_container_t create_container) {
@@ -169,9 +169,9 @@ class ComponentContainerBase : NonMovable {
 
 
 	private:
-		friend void detail::serialize_container(io::WriterRef, ComponentContainerBase*);
+		friend serde2::Result detail::serialize_container(serde2::WritableArchive&, ComponentContainerBase*);
 
-		virtual void serialize(io::WriterRef) const = 0;
+		virtual serde2::Result serialize(serde2::WritableArchive&) const = 0;
 		virtual u64 serialization_type_id() const = 0;
 
 };
@@ -219,32 +219,40 @@ class ComponentContainer final : public ComponentContainerBase {
 			return _registerer->type.type_id();
 		}
 
-		void serialize(io::WriterRef writer) const override {
+		serde2::Result serialize(serde2::WritableArchive& writer) const override {
 			if constexpr(is_serde_compatible) {
-				writer->write_one(u64(_components.size()));
+				if(!writer(u64(_components.size()))) {
+					return core::Err();
+				}
 				for(auto p : _components.as_pairs()) {
-					writer->write_one(u64(p.first));
-					serde::serialize(writer, p.second);
+					if(!writer(u64(p.first)) || !writer(p.second)) {
+						return core::Err();
+					}
 				}
 			}
+			return core::Ok();
 		}
 
-		void deserialize(io::ReaderRef reader) {
+		serde2::Result deserialize(AssetReadableArchive& reader) {
 			if constexpr(is_serde_compatible) {
-				u64 component_count = reader->read_one<u64>();
+				u64 component_count = 0;
+				if(!reader(component_count)) {
+					return core::Err();
+				}
 				for(u64 i = 0; i != component_count; ++i) {
-					index_type id = index_type(reader->read_one<u64>());
-					serde::deserialize(reader, _components.insert(id));
+					u64 id = 0;
+					if(!reader(id) || !reader(_components.insert(index_type(id)))) {
+						return core::Err();
+					}
 				}
 			}
+			return core::Ok();
 		}
 
-		static std::unique_ptr<ComponentContainerBase> deserialized(io::ReaderRef reader) {
-			try {
-				auto container = std::make_unique<ComponentContainer<T>>();
-				container->deserialize(reader);
+		static std::unique_ptr<ComponentContainerBase> deserialized(AssetReadableArchive& reader) {
+			auto container = std::make_unique<ComponentContainer<T>>();
+			if(container->deserialize(reader)) {
 				return container;
-			} catch(...) {
 			}
 			return nullptr;
 		}

@@ -26,7 +26,7 @@ SOFTWARE.
 #include <editor/components/EditorComponent.h>
 #include <yave/components/RenderableComponent.h>
 
-#include <y/io/File.h>
+#include <y/io2/File.h>
 #include <y/math/random.h>
 
 #include <imgui/imgui_yave.h>
@@ -76,21 +76,28 @@ void EcsDebug::paint_ui(CmdBufferRecorder&, const FrameToken&) {
 	}
 
 	if(ImGui::Button(ICON_FA_SAVE " Save")) {
-		try {
-			world.serialize(io::File::create("world.yw").or_throw("Unable to create world file"));
-		} catch(std::exception& e) {
-			log_msg(fmt("Unable to save world: %", e.what()));
+		if(auto file = io2::File::create("world.yw")) {
+			serde2::WritableArchive ar(std::move(file.unwrap()));
+			if(!world.serialize(ar)) {
+				log_msg("Unable to serialize world");
+			}
+		} else {
+			log_msg("Unable to open file");
 		}
 	}
 
 	ImGui::SameLine();
 	if(ImGui::Button(ICON_FA_FOLDER " Load")) {
-		try {
+
+		if(auto file = io2::File::open("world.yw")) {
 			ecs::EntityWorld w;
-			w.deserialize(io::File::open("world.yw").or_throw("Unable to open world file"));
+			AssetReadableArchive ar(std::move(file.unwrap()), context()->loader());
+			if(!w.deserialize(ar)) {
+				log_msg("Unable to load world.");
+			}
 			world = std::move(w);
-		} catch(std::exception& e) {
-			log_msg(fmt("Unable to load world: %", e.what()));
+		} else {
+			log_msg("Unable to open file.");
 		}
 	}
 

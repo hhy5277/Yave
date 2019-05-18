@@ -28,6 +28,7 @@ SOFTWARE.
 #include "Writer.h"
 
 #include <memory>
+#include <y/io2/io.h>
 
 
 namespace y {
@@ -95,13 +96,26 @@ class Ref {
 
 // for serde2, remove
 #ifdef Y_IO_SERDE2_COMPAT
-		using WriteResult = core::Result<void, usize>;
-		using ReadResult = core::Result<usize, usize>;
+		using WriteResult = io2::WriteResult;
+		using ReadResult = io2::ReadResult;
+		using ReadUpToResult = io2::ReadUpToResult;
+		using FlushResult = io2::FlushResult;
+
 		bool at_end() const {
 			return _ref->at_end();
 		}
 
 		ReadResult read(void* data, usize bytes) {
+			try {
+				if(_ref->read(data, bytes) == bytes) {
+					return core::Ok();
+				}
+			} catch(...) {
+			}
+			return core::Err(usize(0));
+		}
+
+		ReadUpToResult read_up_to(void* data, usize bytes) {
 			try {
 				return core::Ok(_ref->read(data, bytes));
 			} catch(...) {
@@ -109,7 +123,8 @@ class Ref {
 			}
 		}
 
-		ReadResult read_all(core::Vector<u8>& data) {
+
+		ReadUpToResult read_all(core::Vector<u8>& data) {
 			try {
 				_ref->read_all(data);
 				return core::Ok(data.size());
@@ -127,7 +142,7 @@ class Ref {
 			}
 		}
 
-		core::Result<void> flush() {
+		FlushResult flush() {
 			try {
 				_ref->flush();
 				return core::Ok();
@@ -135,6 +150,8 @@ class Ref {
 				return core::Err();
 			}
 		}
+#else
+		static_assert(false);
 #endif
 
 	private:

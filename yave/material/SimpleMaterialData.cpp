@@ -47,6 +47,26 @@ core::Result<SimpleMaterialData> SimpleMaterialData::load(io::ReaderRef reader, 
 	return core::Err();
 }
 
+core::Result<SimpleMaterialData> SimpleMaterialData::load(AssetReadableArchive& arc) noexcept {
+	SimpleMaterialHeader header;
+	if(!arc(header)) {
+		return core::Err();
+	}
+	SimpleMaterialData data;
+	for(auto& tex : data._textures) {
+		AssetId id;
+		if(arc(id) && id != AssetId::invalid_id()) {
+			if(auto t = arc.loader().load<Texture>(id)) {
+				tex = std::move(t.unwrap());
+			} else {
+				return core::Err();
+			}
+		}
+	}
+	return core::Ok(data);
+}
+
+
 
 SimpleMaterialData& SimpleMaterialData::set_texture(Textures type, AssetPtr<Texture> tex) {
 	_textures[usize(type)] = std::move(tex);

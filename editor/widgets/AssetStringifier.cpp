@@ -72,11 +72,10 @@ void AssetStringifier::paint_ui(CmdBufferRecorder& recorder, const FrameToken& t
 
 void AssetStringifier::stringify(AssetId id) {
 	if(auto data = context()->asset_store().data(id)) {
-		try {
-			core::DebugTimer timer("Stringify mesh");
+		core::DebugTimer timer("Stringify mesh");
 
-			MeshData mesh;
-			mesh.deserialize(data.unwrap());
+		MeshData mesh;
+		if(mesh.deserialize(serde2::ReadableArchive(data.unwrap()))) {
 
 			_selected = id;
 			_vertices.make_empty();
@@ -114,8 +113,8 @@ void AssetStringifier::stringify(AssetId id) {
 			}
 
 			return;
-		} catch(std::exception& e) {
-			log_msg(fmt("Unable to load mesh: %", e.what()), Log::Error);
+		} else {
+			log_msg("Unable to load mesh.", Log::Error);
 		}
 	}
 

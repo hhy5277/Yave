@@ -23,7 +23,7 @@ SOFTWARE.
 #include <y/core/String.h>
 #include <y/io2/Buffer.h>
 #include <y/math/math.h>
-#include <y/serde2/archives.h>
+#include <y/serde2/serde.h>
 
 #include <y/io/Ref.h>
 
@@ -33,6 +33,14 @@ namespace {
 using namespace y;
 using namespace y::core;
 using namespace y::serde2;
+
+struct Func {
+	y_serialize2(v, (v.size() ? u32(7) : u32(9)))
+	y_deserialize2(v, func([this](u32 x) { s = x + 1; }))
+
+	core::Vector<int> v;
+	u32 s = 0;
+};
 
 struct DummyWriter {
 	DummyWriter() = default;
@@ -205,6 +213,22 @@ y_test_func("serde RAII") {
 		y_test_assert(alive);
 		WritableArchive(RaiiGuard(&alive))(es, func([&] { y_test_assert(alive); })).unwrap();
 		y_test_assert(!alive);
+	}
+}
+
+
+y_test_func("serde func") {
+	io2::Buffer buffer;
+	{
+		Func f;
+		f.v = {1, 2, 3};
+		f.serialize(WritableArchive(buffer)).unwrap();
+	}
+	{
+		Func f;
+		f.deserialize(ReadableArchive(buffer)).unwrap();
+		y_test_assert(f.v == core::ArrayView<int>({1, 2, 3}));
+		y_test_assert(f.s == 8);
 	}
 }
 
