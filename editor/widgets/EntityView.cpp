@@ -33,7 +33,7 @@ SOFTWARE.
 
 namespace editor {
 
-static const char* light_type_name(Light::Type type) {
+/*static const char* light_type_name(Light::Type type) {
 	switch(type) {
 		case Light::Directional:
 			return "Directional";
@@ -45,7 +45,7 @@ static const char* light_type_name(Light::Type type) {
 		break;
 	}
 	return y_fatal("Unsupported light type.");
-}
+}*/
 
 EntityView::EntityView(ContextPtr cptr) :
 		Widget(ICON_FA_OBJECT_GROUP " Entities"),

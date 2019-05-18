@@ -131,7 +131,8 @@ void MeshImporter::import(import::SceneData scene) {
 				core::String name = context()->asset_store().filesystem()->join(_import_path, a.name());
 				log_msg(fmt("Saving asset as \"%\"", name));
 				io2::Buffer buffer;
-				a.obj().serialize(WritableAssetArchive(buffer)).or_throw("import failed.");
+				WritableAssetArchive ar(buffer);
+				a.obj().serialize(ar).or_throw("import failed.");
 				context()->asset_store().import(buffer, name).or_throw("import failed.");
 			} catch(std::exception& e) {
 				log_msg(fmt("Unable save \"%\": %", a.name(), e.what()), Log::Error);

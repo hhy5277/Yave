@@ -222,11 +222,13 @@ y_test_func("serde func") {
 	{
 		Func f;
 		f.v = {1, 2, 3};
-		f.serialize(WritableArchive(buffer)).unwrap();
+		WritableArchive ar(buffer);
+		f.serialize(ar).unwrap();
 	}
 	{
 		Func f;
-		f.deserialize(ReadableArchive(buffer)).unwrap();
+		ReadableArchive ar(buffer);
+		f.deserialize(ar).unwrap();
 		y_test_assert(f.v == core::ArrayView<int>({1, 2, 3}));
 		y_test_assert(f.s == 8);
 	}

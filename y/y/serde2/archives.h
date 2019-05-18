@@ -27,6 +27,7 @@ SOFTWARE.
 
 namespace y {
 
+Y_TODO(We still pay a virtual call by read/write op, change that if possible)
 namespace io2 {
 class Reader;
 class Writer;
@@ -34,18 +35,31 @@ class Writer;
 
 namespace serde2 {
 
-Y_TODO(We still pay a virtual call by read/write op, change that if possible)
+struct ReadableArchiveTag {};
+struct WritableArchiveTag {};
 
-class ReadableArchive {
+
+template<typename T>
+using is_readable_archive = std::is_base_of<ReadableArchiveTag, std::decay_t<T>>;
+template<typename T>
+static constexpr bool is_readable_archive_v = is_readable_archive<T>::value;
+
+template<typename T>
+using is_writable_archive = std::is_base_of<WritableArchiveTag, std::decay_t<T>>;
+template<typename T>
+static constexpr bool is_writable_archive_v = is_writable_archive<T>::value;
+
+
+template<typename Derived>
+class ReadableArchiveBase : public ReadableArchiveTag {
 
 	public:
-		ReadableArchive(io2::Reader&& reader) : _reader(std::move(reader)) {
+		ReadableArchiveBase(io2::Reader&& reader) : _reader(std::move(reader)) {
 		}
 
 		template<typename T>
-		ReadableArchive(T&& t) : _reader(y_fwd(t)) {
+		ReadableArchiveBase(T&& t) : _reader(y_fwd(t)) {
 		}
-
 
 		template<typename T, typename... Args>
 		Result operator()(T&& t, Args&&... args) {
@@ -54,7 +68,7 @@ class ReadableArchive {
 
 		template<typename T>
 		Result array(T* t, usize n) {
-			return helper::deserialize_array(*this, t, n);
+			return helper::deserialize_array(static_cast<Derived&>(*this), t, n);
 		}
 
 		io2::Reader& reader() {
@@ -64,7 +78,7 @@ class ReadableArchive {
 	private:
 		template<typename T, typename... Args>
 		Result process(T&& t, Args&&... args) {
-			return chain(helper::deserialize_one(*this, y_fwd(t)), y_fwd(args)...);
+			return chain(helper::deserialize_one(static_cast<Derived&>(*this), y_fwd(t)), y_fwd(args)...);
 		}
 
 		template<typename... Args>
@@ -81,17 +95,16 @@ class ReadableArchive {
 		io2::Reader _reader;
 };
 
-
-class WritableArchive {
+template<typename Derived>
+class WritableArchiveBase : public WritableArchiveTag {
 
 	public:
-		WritableArchive(io2::Writer&& writer) : _writer(std::move(writer)) {
+		WritableArchiveBase(io2::Writer&& writer) : _writer(std::move(writer)) {
 		}
 
 		template<typename T>
-		WritableArchive(T&& t) : _writer(y_fwd(t)) {
+		WritableArchiveBase(T&& t) : _writer(y_fwd(t)) {
 		}
-
 
 		template<typename T, typename... Args>
 		Result operator()(const T& t, const Args&... args) {
@@ -100,8 +113,7 @@ class WritableArchive {
 
 		template<typename T>
 		Result array(const T* t, usize n) {
-			log_msg(fmt("% x %", type_name<T>(), n));
-			return helper::serialize_array(*this, t, n);
+			return helper::serialize_array(static_cast<Derived&>(*this), t, n);
 		}
 
 		io2::Writer& writer() {
@@ -111,7 +123,7 @@ class WritableArchive {
 	private:
 		template<typename T, typename... Args>
 		Result process(const T& t, const Args&... args) {
-			return chain(helper::serialize_one(*this, t), args...);
+			return chain(helper::serialize_one(static_cast<Derived&>(*this), t), args...);
 		}
 
 		template<typename... Args>
@@ -128,6 +140,14 @@ class WritableArchive {
 		io2::Writer _writer;
 };
 
+
+struct ReadableArchive : ReadableArchiveBase<ReadableArchive> {
+	using ReadableArchiveBase<ReadableArchive>::ReadableArchiveBase;
+};
+
+struct WritableArchive : WritableArchiveBase<WritableArchive> {
+	using WritableArchiveBase<WritableArchive>::WritableArchiveBase;
+};
 
 }
 }

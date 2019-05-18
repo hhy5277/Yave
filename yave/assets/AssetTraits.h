@@ -38,7 +38,7 @@ struct AssetTraits {
 	static constexpr bool is_asset = false;
 };
 
-#define YAVE_FILL_ASSET_TRAITS(Type, LoadFrom, TypeEnum, UseNew)							\
+#define YAVE_FILL_ASSET_TRAITS(Type, LoadFrom, TypeEnum)									\
 	static constexpr bool is_asset = true;													\
 	static constexpr AssetType type = TypeEnum;												\
 	using load_from = LoadFrom;																\
@@ -50,21 +50,16 @@ struct AssetTraits {
 		}																					\
 		return core::Ok(Type(detail::device_from_loader(arc.loader()), std::move(data)));	\
 	}																						\
-	static Result load_asset(io::ReaderRef reader, AssetLoader& loader) noexcept {			\
-		y::io2::Reader r(reader);															\
-		ReadableAssetArchive ar(r, loader);													\
-		return load_asset(ar);																\
-	}																						\
 	static Result load_asset(io2::ReaderRef reader, AssetLoader& loader) noexcept {			\
-		ReadableAssetArchive ar(reader, loader);											\
-		return load_asset(ar);																\
-	}
+		ReadableAssetArchive arc(reader, loader);											\
+		return load_asset(arc);																\
+	}																						\
 
 
 #define YAVE_DECLARE_ASSET_TRAITS(Type, LoadFrom, TypeEnum)									\
 	template<>																				\
 	struct AssetTraits<Type> {																\
-		YAVE_FILL_ASSET_TRAITS(Type, LoadFrom, TypeEnum, false)								\
+		YAVE_FILL_ASSET_TRAITS(Type, LoadFrom, TypeEnum)									\
 	}
 
 

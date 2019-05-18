@@ -71,12 +71,13 @@ static auto has_deserialize(T*) -> bool_type<std::is_same_v<Result, decltype(std
 template<typename Arc, typename T>
 static auto has_deserialize(...) -> std::false_type;
 }
+}
 
 
 template<typename Arc, typename T, typename U = remove_cvref_t<T>>
-using has_deserializer = bool_type<decltype(detail::has_deserializer<Arc, U>(nullptr))::value>;
+using has_deserializer = bool_type<decltype(helper::detail::has_deserializer<Arc, U>(nullptr))::value>;
 template<typename Arc, typename T, typename U = remove_cvref_t<T>>
-using has_deserialize = bool_type<decltype(detail::has_deserialize<Arc, U>(nullptr))::value>;
+using has_deserialize = bool_type<decltype(helper::detail::has_deserialize<Arc, U>(nullptr))::value>;
 
 
 template<typename Arc, typename T>
@@ -85,6 +86,7 @@ template<typename Arc, typename T>
 static constexpr bool has_deserialize_v = has_deserialize<Arc, T>::value;
 
 
+namespace helper {
 template<typename Arc, typename T>
 static Result deserialize_one(Arc& ar, T&& t) {
 	static_assert(!(has_deserializer_v<Arc, T> && has_deserialize_v<Arc, T>));
@@ -149,12 +151,13 @@ static auto has_serialize(T*) -> bool_type<std::is_same_v<Result, decltype(std::
 template<typename Arc, typename T>
 static auto has_serialize(...) -> std::false_type;
 }
+}
 
 
 template<typename Arc, typename T, typename U = remove_cvref_t<T>>
-using has_serializer = bool_type<decltype(detail::has_serializer<Arc, U>(nullptr))::value>;
+using has_serializer = bool_type<decltype(helper::detail::has_serializer<Arc, U>(nullptr))::value>;
 template<typename Arc, typename T, typename U = remove_cvref_t<T>>
-using has_serialize = bool_type<decltype(detail::has_serialize<Arc, U>(nullptr))::value>;
+using has_serialize = bool_type<decltype(helper::detail::has_serialize<Arc, U>(nullptr))::value>;
 
 
 template<typename Arc, typename T>
@@ -163,6 +166,7 @@ template<typename Arc, typename T>
 static constexpr bool has_serialize_v = has_serialize<Arc, T>::value;
 
 
+namespace helper {
 template<typename Arc, typename T>
 static Result serialize_one(Arc& ar, const T& t) {
 	static_assert(!(has_serializer_v<Arc, T> && has_serialize_v<Arc, T>));

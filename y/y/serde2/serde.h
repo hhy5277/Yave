@@ -31,32 +31,30 @@ SOFTWARE.
 namespace y {
 namespace serde2 {
 
-
 #define y_serde2_unfold_arg(N)									\
 	if(!_y_serde_arc(N)) { return y::core::Err(); }
 
 
-
-#define y_serialize2(...)																									\
-	template<typename Arc, typename = std::enable_if_t<std::is_base_of_v<y::serde2::WritableArchive, std::decay_t<Arc>>>>	\
-	y::serde2::Result serialize(Arc&& _y_serde_arc) const noexcept {														\
-		try {																												\
-			Y_REC_MACRO(Y_MACRO_MAP(y_serde2_unfold_arg, __VA_ARGS__))														\
-		} catch(...) {																										\
-			return core::Err();																								\
-		}																													\
-		return y::core::Ok();																								\
+#define y_serialize2(...)																			\
+	template<typename Arc, typename = std::enable_if_t<y::serde2::is_writable_archive_v<Arc>>>		\
+	y::serde2::Result serialize(Arc& _y_serde_arc) const noexcept {									\
+		try {																						\
+			Y_REC_MACRO(Y_MACRO_MAP(y_serde2_unfold_arg, __VA_ARGS__))								\
+		} catch(...) {																				\
+			return y::core::Err();																	\
+		}																							\
+		return y::core::Ok();																		\
 	}
 
-#define y_deserialize2(...)																									\
-	template<typename Arc, typename = std::enable_if_t<std::is_base_of_v<y::serde2::ReadableArchive, std::decay_t<Arc>>>>	\
-	y::serde2::Result deserialize(Arc&& _y_serde_arc) noexcept {															\
-		try {																												\
-			Y_REC_MACRO(Y_MACRO_MAP(y_serde2_unfold_arg, __VA_ARGS__))														\
-		} catch(...) {																										\
-			return core::Err();																								\
-		}																													\
-		return y::core::Ok();																								\
+#define y_deserialize2(...)																			\
+	template<typename Arc, typename = std::enable_if_t<y::serde2::is_readable_archive_v<Arc>>>		\
+	y::serde2::Result deserialize(Arc& _y_serde_arc) noexcept {										\
+		try {																						\
+			Y_REC_MACRO(Y_MACRO_MAP(y_serde2_unfold_arg, __VA_ARGS__))								\
+		} catch(...) {																				\
+			return y::core::Err();																	\
+		}																							\
+		return y::core::Ok();																		\
 	}
 
 
@@ -250,13 +248,13 @@ struct Serial {
 	u32 i;
 	y_serde2(i)
 };
-static_assert(helper::has_serialize_v<WritableArchive, Serial>);
-static_assert(helper::has_serialize_v<WritableArchive, Serial&>);
-static_assert(helper::has_serialize_v<WritableArchive, const Serial&>);
+static_assert(has_serialize_v<WritableArchive, Serial>);
+static_assert(has_serialize_v<WritableArchive, Serial&>);
+static_assert(has_serialize_v<WritableArchive, const Serial&>);
 
-static_assert(helper::has_deserialize_v<ReadableArchive, Serial>);
-static_assert(helper::has_deserialize_v<ReadableArchive, Serial&>);
-static_assert(helper::has_deserialize_v<ReadableArchive, Serial&&>);
+static_assert(has_deserialize_v<ReadableArchive, Serial>);
+static_assert(has_deserialize_v<ReadableArchive, Serial&>);
+static_assert(has_deserialize_v<ReadableArchive, Serial&&>);
 }
 
 

@@ -28,7 +28,7 @@ SOFTWARE.
 #include <yave/framegraph/FrameGraph.h>
 
 #include <y/core/Chrono.h>
-#include <y/io/File.h>
+#include <yave/utils/FileSystemModel.h>
 
 namespace editor {
 
@@ -42,7 +42,7 @@ static ImageData load_font() {
 	ImGuiIO& io = ImGui::GetIO();
 
 	io.Fonts->AddFontDefault();
-	if(io::File::exists("fonts/fa-solid-900.ttf")) {
+	if(FileSystemModel::local_filesystem()->exists("fonts/fa-solid-900.ttf").unwrap_or(false)) {
 		ImFontConfig config;
 		config.MergeMode = true;
 		const ImWchar icon_ranges[] = {ICON_MIN_FA, ICON_MAX_FA, 0};

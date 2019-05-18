@@ -24,7 +24,7 @@ SOFTWARE.
 
 #include <editor/editor.h>
 #include <yave/window/EventHandler.h>
-#include <y/serde/serde.h>
+#include <yave/utils/serde.h>
 
 namespace editor {
 

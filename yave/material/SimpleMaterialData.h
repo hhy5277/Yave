@@ -50,10 +50,8 @@ class SimpleMaterialData {
 		SimpleMaterialData(std::array<AssetPtr<Texture>, texture_count>&& textures);
 
 		y_serialize2(SimpleMaterialHeader(), texture_ids())
-		y_serde_ser_compat()
+		serde2::Result deserialize(ReadableAssetArchive& arc) noexcept;
 
-		static core::Result<SimpleMaterialData> load(io::ReaderRef reader, AssetLoader& loader) noexcept;
-		static core::Result<SimpleMaterialData> load(ReadableAssetArchive& arc) noexcept;
 
 
 		SimpleMaterialData& set_texture(Textures type, AssetPtr<Texture> tex);
@@ -69,6 +67,9 @@ class SimpleMaterialData {
 
 		std::array<AssetPtr<Texture>, texture_count> _textures;
 };
+
+static_assert(serde2::has_serialize_v<WritableAssetArchive, SimpleMaterialData>);
+static_assert(serde2::has_deserialize_v<ReadableAssetArchive, SimpleMaterialData>);
 
 }
 

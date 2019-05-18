@@ -32,11 +32,12 @@ class AssetLoader;
 
 using WritableAssetArchive = serde2::WritableArchive;
 
-class ReadableAssetArchive : public serde2::ReadableArchive {
+class ReadableAssetArchive : public serde2::ReadableArchiveBase<ReadableAssetArchive> {
 
 	public:
-		ReadableAssetArchive(serde2::ReadableArchive&& ar, AssetLoader& loader) :
-				serde2::ReadableArchive(std::move(ar)),
+		template<typename Arc>
+		ReadableAssetArchive(Arc&& arc, AssetLoader& loader) :
+				serde2::ReadableArchiveBase<ReadableAssetArchive>(y_fwd(arc)),
 				_loader(loader) {
 		}
 

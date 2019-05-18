@@ -27,6 +27,11 @@ SOFTWARE.
 #include <y/core/Result.h>
 
 namespace y {
+
+namespace serde2 {
+struct ReadableArchive;
+}
+
 namespace io2 {
 
 using ReadUpToResult = core::Result<usize, usize>;
@@ -103,10 +108,12 @@ class Reader final {
 
 		template<typename T, typename = std::enable_if_t<!std::is_same_v<std::decay_t<T>, Reader>>>
 		Reader(T&& t) : _storage(std::make_unique<Inner<remove_cvref_t<T>>>(y_fwd(t))), _ref(_storage.get())  {
+			static_assert(!std::is_base_of_v<serde2::ReadableArchive, std::decay_t<T>>);
 		}
 
 		template<typename T, typename = std::enable_if_t<!std::is_same_v<std::decay_t<T>, Reader>>>
 		Reader(T& t) : _storage(std::make_unique<NotOwner<remove_cvref_t<T>>>(t)), _ref(_storage.get()) {
+			static_assert(!std::is_base_of_v<serde2::ReadableArchive, std::decay_t<T>>);
 		}
 
 

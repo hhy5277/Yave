@@ -80,7 +80,8 @@ void ImageImporter::import(const Named<ImageData>& asset) {
 	try {
 		core::String name = context()->asset_store().filesystem()->join(_import_path, asset.name());
 		io2::Buffer buffer;
-		asset.obj().serialize(WritableAssetArchive(buffer)).or_throw("?");
+		WritableAssetArchive ar(buffer);
+		asset.obj().serialize(ar).or_throw("?");
 		context()->asset_store().import(buffer, name).or_throw("import failed.");
 	} catch(std::exception& e) {
 		log_msg(fmt("Unable save image: %", e.what()), Log::Error);

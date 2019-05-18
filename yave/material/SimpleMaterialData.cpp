@@ -31,41 +31,28 @@ SimpleMaterialData::SimpleMaterialData(std::array<AssetPtr<Texture>, texture_cou
 		_textures(std::move(textures)) {
 }
 
-core::Result<SimpleMaterialData> SimpleMaterialData::load(io::ReaderRef reader, AssetLoader& loader) noexcept {
-	try {
-		SimpleMaterialHeader().deserialize(reader);
-		SimpleMaterialData data;
-		for(auto& tex : data._textures) {
-			auto id = serde::deserialized<AssetId>(reader);
-			if(id != AssetId::invalid_id()) {
-				tex = std::move(loader.load<Texture>(id).or_throw("Unable to load texture."));
-			}
-		}
-		return core::Ok(data);
-	} catch(...) {
-	}
-	return core::Err();
-}
-
-core::Result<SimpleMaterialData> SimpleMaterialData::load(ReadableAssetArchive& arc) noexcept {
+serde2::Result SimpleMaterialData::deserialize(ReadableAssetArchive& arc) noexcept {
 	SimpleMaterialHeader header;
 	if(!arc(header)) {
 		return core::Err();
 	}
-	SimpleMaterialData data;
-	for(auto& tex : data._textures) {
+	for(auto& tex : _textures) {
 		AssetId id;
-		if(arc(id) && id != AssetId::invalid_id()) {
-			if(auto t = arc.loader().load<Texture>(id)) {
-				tex = std::move(t.unwrap());
-			} else {
+		if(!arc(id)) {
+			return core::Err();
+		}
+		if(id != AssetId::invalid_id()) {
+			auto t = arc.loader().load<Texture>(id);
+			if(!t) {
 				return core::Err();
 			}
+			tex = std::move(t.unwrap());
+		} else {
+			tex = AssetPtr<Texture>();
 		}
 	}
-	return core::Ok(data);
+	return core::Ok();
 }
-
 
 
 SimpleMaterialData& SimpleMaterialData::set_texture(Textures type, AssetPtr<Texture> tex) {

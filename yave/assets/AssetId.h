@@ -23,7 +23,7 @@ SOFTWARE.
 #define YAVE_ASSETS_ASSET_H
 
 #include "AssetTraits.h"
-#include <y/serde/serde.h>
+#include <yave/utils/serde.h>
 
 namespace yave {
 
