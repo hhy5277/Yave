@@ -31,4 +31,8 @@ const core::String& EditorComponent::name() const {
 	return _name;
 }
 
+void EditorComponent::set_name(core::String name) {
+	_name = std::move(name);
+}
+
 }

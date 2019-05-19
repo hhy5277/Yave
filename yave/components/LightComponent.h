@@ -39,7 +39,7 @@ class LightComponent final {
 		}
 
 	private:
-		Light _light;
+		Light _light = Light(Light::Directional);
 };
 
 }

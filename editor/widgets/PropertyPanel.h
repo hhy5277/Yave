@@ -25,25 +25,31 @@ SOFTWARE.
 #include <editor/ui/Widget.h>
 
 namespace yave {
-class StaticMeshInstance;
-class Light;
+class LightComponent;
+class RenderableComponent;
+class Transformable;
 }
 
 namespace editor {
+
+class EditorComponent;
 
 class PropertyPanel final : public Widget, public ContextLinked {
 	public:
 		PropertyPanel(ContextPtr cptr);
 
-
-		//bool is_visible() const override;
 		void paint(CmdBufferRecorder& recorder, const FrameToken& token) override;
 
 	private:
 		void paint_ui(CmdBufferRecorder&, const FrameToken&) override;
 
-		void static_mesh_panel(StaticMeshInstance* instance);
-		void light_panel(Light* light);
+		void panel(EditorComponent& component);
+		void panel(LightComponent& component);
+		void panel(RenderableComponent& component);
+
+		void transformable_panel(Transformable& transformable);
+
+
 
 		math::Vec3 _euler;
 };

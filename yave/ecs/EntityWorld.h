@@ -84,7 +84,11 @@ class EntityWorld : NonCopyable {
 
 		template<typename T>
 		bool has(EntityId id) const {
-			return exists(id) && container<T>()->template has<T>(id);
+			if(!exists(id) ) {
+				return false;
+			}
+			const ComponentContainerBase* cont = container<T>();
+			return cont ? cont->has<T>(id) : false;
 		}
 
 

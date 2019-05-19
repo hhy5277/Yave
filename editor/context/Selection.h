@@ -109,7 +109,7 @@ class Selection {
 		}
 
 		void set_selected(ecs::EntityId id) {
-			id = _id;
+			_id = id;
 		}
 
 	private:

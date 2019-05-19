@@ -24,6 +24,10 @@ SOFTWARE.
 
 #include <editor/context/EditorContext.h>
 #include <editor/widgets/AssetSelector.h>
+#include <editor/components/EditorComponent.h>
+
+#include <yave/components/RenderableComponent.h>
+#include <yave/components/LightComponent.h>
 
 #include <imgui/imgui_yave.h>
 
@@ -34,10 +38,6 @@ PropertyPanel::PropertyPanel(ContextPtr cptr) :
 		ContextLinked(cptr) {
 	set_closable(false);
 }
-
-/*bool PropertyPanel::is_visible() const {
-	return UiElement::is_visible() && context()->selection().selected();
-}*/
 
 void PropertyPanel::paint(CmdBufferRecorder& recorder, const FrameToken& token) {
 	Widget::paint(recorder, token);
@@ -56,13 +56,130 @@ void PropertyPanel::paint(CmdBufferRecorder& recorder, const FrameToken& token) 
 }
 
 void PropertyPanel::paint_ui(CmdBufferRecorder&, const FrameToken&) {
-	if(!context()->selection().transformable()) {
+	if(!context()->selection().has_selected_entity()) {
 		return;
 	}
 
-	Transformable* sel = context()->selection().transformable();
-	if(sel && ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
-		auto [pos, rot, scale] = sel->transform().decompose();
+	ecs::EntityWorld& world = context()->world();
+	ecs::EntityId id = context()->selection().selected_entity();
+
+	if(world.has<EditorComponent>(id)) {
+		if(ImGui::CollapsingHeader("Entity", ImGuiTreeNodeFlags_DefaultOpen)) {
+			panel(world.component<EditorComponent>(id));
+		}
+	}
+
+	if(world.has<RenderableComponent>(id)) {
+		if(ImGui::CollapsingHeader("Renderable", ImGuiTreeNodeFlags_DefaultOpen)) {
+			auto& component = world.component<RenderableComponent>(id);
+			transformable_panel(*component.get());
+			panel(component);
+		}
+	}
+
+	if(world.has<LightComponent>(id)) {
+		if(ImGui::CollapsingHeader("Light", ImGuiTreeNodeFlags_DefaultOpen)) {
+			auto& component = world.component<LightComponent>(id);
+			transformable_panel(component.light());
+			panel(component);
+		}
+	}
+
+	//ImGui::Text("Position: %f, %f, %f", sel->position().x(), sel->position().y(), sel->position().z());*/
+}
+
+
+void PropertyPanel::panel(EditorComponent& component) {
+	const core::String& name = component.name();
+
+	std::array<char, 1024> name_buffer;
+	std::fill(name_buffer.begin(), name_buffer.end(), 0);
+	std::copy(name.begin(), name.end(), name_buffer.begin());
+
+	if(ImGui::InputText("Name", name_buffer.begin(), name_buffer.size())) {
+		component.set_name(name_buffer.begin());
+	}
+
+}
+
+void PropertyPanel::panel(RenderableComponent& component) {
+	if(StaticMeshInstance* instance = dynamic_cast<StaticMeshInstance*>(component.get())) {
+		Y_TODO(use ECS to ensure that we dont modify a deleted object)
+		if(!ImGui::CollapsingHeader("Static mesh")) {
+			return;
+		}
+
+		auto clean_name = [=](auto&& n) { return context()->asset_store().filesystem()->filename(n); };
+
+		// material
+		{
+			core::String name = context()->asset_store().name(instance->material().id()).map(clean_name).unwrap_or("No material");
+			if(ImGui::Button(ICON_FA_FOLDER_OPEN)) {
+				context()->ui().add<AssetSelector>(AssetType::Material)->set_selected_callback(
+					[=, ctx = context()](AssetId id) {
+						if(auto material = ctx->loader().load<Material>(id)) {
+							instance->material() = material.unwrap();
+						}
+						return true;
+					});
+			}
+			ImGui::SameLine();
+			ImGui::InputText("Material", name.data(), name.size(), ImGuiInputTextFlags_ReadOnly);
+		}
+
+		// mesh
+		{
+			core::String name = context()->asset_store().name(instance->mesh().id()).map(clean_name).unwrap_or("No mesh");
+			if(ImGui::Button(ICON_FA_FOLDER_OPEN)) {
+				context()->ui().add<AssetSelector>(AssetType::Mesh)->set_selected_callback(
+					[=, ctx = context()](AssetId id) {
+						if(auto mesh = ctx->loader().load<StaticMesh>(id)) {
+							instance->mesh() = mesh.unwrap();
+						}
+						return true;
+					});
+			}
+			ImGui::SameLine();
+			ImGui::InputText("Mesh", name.data(), name.size(), ImGuiInputTextFlags_ReadOnly);
+		}
+	}
+}
+
+
+void PropertyPanel::panel(LightComponent& component) {
+	Light& light = component.light();
+
+	int color_flags = ImGuiColorEditFlags_NoSidePreview |
+					  // ImGuiColorEditFlags_NoSmallPreview |
+					  ImGuiColorEditFlags_NoAlpha |
+					  ImGuiColorEditFlags_Float |
+					  ImGuiColorEditFlags_InputRGB;
+
+	math::Vec4 color(light.color(), 1.0f);
+	if(ImGui::ColorButton("Color", color, color_flags)) {
+		ImGui::OpenPopup("Color");
+	}
+	ImGui::SameLine();
+	ImGui::Text("Light color");
+
+	if(ImGui::BeginPopup("Color")) {
+		ImGui::ColorPicker3("##lightpicker", light.color().begin(), color_flags);
+
+		ImGui::SameLine();
+		ImGui::BeginGroup();
+		ImGui::Text("temperature slider should be here");
+		ImGui::EndGroup();
+
+		ImGui::EndPopup();
+	}
+
+	ImGui::DragFloat("Intensity", &light.intensity());
+	ImGui::DragFloat("Radius", &light.radius());
+}
+
+void PropertyPanel::transformable_panel(Transformable& transformable) {
+	if(ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
+		auto [pos, rot, scale] = transformable.transform().decompose();
 
 		// position
 		{
@@ -100,96 +217,8 @@ void PropertyPanel::paint_ui(CmdBufferRecorder&, const FrameToken&) {
 			}
 		}
 
-		sel->transform() = math::Transform<>(pos, rot, scale);
+		transformable.transform() = math::Transform<>(pos, rot, scale);
 	}
-
-	if(Renderable* renderable = context()->selection().renderable()) {
-		if(StaticMeshInstance* instance = dynamic_cast<StaticMeshInstance*>(renderable)) {
-			static_mesh_panel(instance);
-		}
-	}
-
-	if(Light* light = context()->selection().light()) {
-		light_panel(light);
-	}
-
-
-	//ImGui::Text("Position: %f, %f, %f", sel->position().x(), sel->position().y(), sel->position().z());*/
-
-}
-
-void PropertyPanel::static_mesh_panel(StaticMeshInstance* instance) {
-	Y_TODO(use ECS to ensure that we dont modify a deleted object)
-	if(!ImGui::CollapsingHeader("Static mesh", ImGuiTreeNodeFlags_DefaultOpen)) {
-		return;
-	}
-
-	auto clean_name = [=](auto&& n) { return context()->asset_store().filesystem()->filename(n); };
-
-	// material
-	{
-		core::String name = context()->asset_store().name(instance->material().id()).map(clean_name).unwrap_or("No material");
-		if(ImGui::Button(ICON_FA_FOLDER_OPEN)) {
-			context()->ui().add<AssetSelector>(AssetType::Material)->set_selected_callback(
-				[=, ctx = context()](AssetId id) {
-					if(auto material = ctx->loader().load<Material>(id)) {
-						instance->material() = material.unwrap();
-					}
-					return true;
-				});
-		}
-		ImGui::SameLine();
-		ImGui::InputText("Material", name.data(), name.size(), ImGuiInputTextFlags_ReadOnly);
-	}
-
-	// mesh
-	{
-		core::String name = context()->asset_store().name(instance->mesh().id()).map(clean_name).unwrap_or("No mesh");
-		if(ImGui::Button(ICON_FA_FOLDER_OPEN)) {
-			context()->ui().add<AssetSelector>(AssetType::Mesh)->set_selected_callback(
-				[=, ctx = context()](AssetId id) {
-					if(auto mesh = ctx->loader().load<StaticMesh>(id)) {
-						instance->mesh() = mesh.unwrap();
-					}
-					return true;
-				});
-		}
-		ImGui::SameLine();
-		ImGui::InputText("Mesh", name.data(), name.size(), ImGuiInputTextFlags_ReadOnly);
-	}
-}
-
-void PropertyPanel::light_panel(Light* light) {
-	int flags = ImGuiColorEditFlags_NoSidePreview |
-				// ImGuiColorEditFlags_NoSmallPreview |
-				ImGuiColorEditFlags_NoAlpha |
-				ImGuiColorEditFlags_Float |
-				ImGuiColorEditFlags_InputRGB;
-
-	if(ImGui::CollapsingHeader("Light", ImGuiTreeNodeFlags_DefaultOpen)) {
-		math::Vec4 color(light->color(), 1.0f);
-		if(ImGui::ColorButton("Color", color, flags/*, ImVec2(40, 40)*/)) {
-			ImGui::OpenPopup("Color");
-		}
-		ImGui::SameLine();
-		ImGui::Text("Light color");
-	}
-
-	if(ImGui::BeginPopup("Color")) {
-		ImGui::ColorPicker3("##lightpicker", light->color().begin(), flags);
-
-		ImGui::SameLine();
-		ImGui::BeginGroup();
-		ImGui::Text("temperature slider should be here");
-		ImGui::EndGroup();
-
-		ImGui::EndPopup();
-	}
-
-	/*ImGui::InputFloat("Intensity", &light->intensity(), 1.0f, 10.0f);
-	ImGui::InputFloat("Radius", &light->radius(), 1.0f, 10.0f);*/
-	ImGui::DragFloat("Intensity", &light->intensity());
-	ImGui::DragFloat("Radius", &light->radius());
 }
 
 }

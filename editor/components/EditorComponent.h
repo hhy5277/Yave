@@ -35,6 +35,7 @@ class EditorComponent {
 		EditorComponent(std::string_view name);
 
 		const core::String& name() const;
+		void set_name(core::String name);
 
 		y_serde2(_name)
 

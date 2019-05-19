@@ -73,18 +73,23 @@ void EntityView::paint_ui(CmdBufferRecorder&, const FrameToken&) {
 		ImGui::EndPopup();
 	}
 
-	for(ecs::EntityId id : world.entities()) {
-		if(!world.has<EditorComponent>(id)) {
-			log_msg("Entity is missing EditorComponent.", Log::Warning);
-			continue;
-		}
 
-		EditorComponent& comp = world.component<EditorComponent>(id);
-		bool selected = context()->selection().selected_entity() == id;
-		if(ImGui::Selectable(fmt(ICON_FA_CUBE " %", comp.name()).data(), &selected)) {
-			 context()->selection().set_selected(id);
+	ImGui::Spacing();
+	if(ImGui::BeginChild("###entities")) {
+		for(ecs::EntityId id : world.entities()) {
+			if(!world.has<EditorComponent>(id)) {
+				log_msg("Entity is missing EditorComponent.", Log::Warning);
+				continue;
+			}
+
+			EditorComponent& comp = world.component<EditorComponent>(id);
+			bool selected = context()->selection().selected_entity() == id;
+			if(ImGui::Selectable(fmt(ICON_FA_CUBE " %", comp.name()).data(), selected)) {
+				 context()->selection().set_selected(id);
+			}
 		}
 	}
+	ImGui::EndChild();
 
 
 	/*if(ImGui::TreeNode(ICON_FA_FOLDER " Renderables")) {
