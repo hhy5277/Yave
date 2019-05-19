@@ -212,10 +212,22 @@ class SparseVector final {
 			return _values[_sparse[i][o]];
 		}
 
-		const_reference operator[](usize index) const {
+		const_reference operator[](index_type index) const {
 			y_debug_assert(has(index));
 			auto [i, o] = page_index(index);
 			return _values[_sparse[i][o]];
+		}
+
+		pointer try_get(index_type index) {
+			auto [i, o] = page_index(index);
+			usize pi = _sparse[i][o];
+			return pi < _values.size() ? &_values[pi] : nullptr;
+		}
+
+		const_pointer try_get(index_type index) const {
+			auto [i, o] = page_index(index);
+			usize pi = _sparse[i][o];
+			return pi < _values.size() ? &_values[pi] : nullptr;
 		}
 
 

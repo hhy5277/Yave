@@ -40,20 +40,10 @@ class ComponentContainerBase;
 
 namespace detail {
 using create_container_t = std::unique_ptr<ComponentContainerBase> (*)(ReadableAssetArchive&);
-class RegisteredContainerType {
-	public:
-		u64 type_id() const {
-			return _type_id;
-		}
-	private:
-		friend void register_container_type(RegisteredContainerType*, usize, create_container_t);
-		friend usize registered_types_count();
-		friend serde2::Result serialize_container(WritableAssetArchive&, ComponentContainerBase*);
-		friend std::unique_ptr<ComponentContainerBase> deserialize_container(ReadableAssetArchive&);
-
-		u64 _type_id = 0;
-		create_container_t _create_container = nullptr;
-		RegisteredContainerType* _next = nullptr;
+struct RegisteredContainerType {
+	u64 type_id = 0;
+	create_container_t create_container = nullptr;
+	RegisteredContainerType* next = nullptr;
 };
 
 usize registered_types_count();
@@ -99,29 +89,31 @@ class ComponentContainerBase : NonMovable {
 		}
 
 		template<typename T>
-		T& get(EntityId id) {
+		T& component(EntityId id) {
 			return component_vector_fast<T>()[id.index()];
 		}
 
 		template<typename T>
-		const T& get(EntityId id) const {
+		const T& component(EntityId id) const {
 			return component_vector_fast<T>()[id.index()];
 		}
+
+		template<typename T>
+		T* component_ptr(EntityId id) {
+			return component_vector_fast<T>().try_get(id.index());
+		}
+
+		template<typename T>
+		const T* component_ptr(EntityId id) const {
+			return component_vector_fast<T>().try_get(id.index());
+		}
+
 
 		template<typename T>
 		bool has(EntityId id) const {
 			return component_vector_fast<T>().has(id.index());
 		}
 
-		template<typename T>
-		T& component(EntityId id) {
-			return component_vector_fast<T>()[id.index()];
-		}
-
-		template<typename T>
-		T& component(EntityId id) const {
-			return component_vector_fast<T>()[id.index()];
-		}
 
 		template<typename T>
 		core::MutableSpan<T> components() {
@@ -132,6 +124,7 @@ class ComponentContainerBase : NonMovable {
 		core::Span<T> components() const {
 			return component_vector_fast<T>().values();
 		}
+
 
 		template<typename T>
 		auto& component_vector() {
@@ -217,7 +210,7 @@ class ComponentContainer final : public ComponentContainerBase {
 		static constexpr bool is_serde_compatible = serde2::is_serializable<WritableAssetArchive, T>::value && serde2::is_deserializable<ReadableAssetArchive, T>::value;
 
 		u64 serialization_type_id() const override {
-			return _registerer->type.type_id();
+			return _registerer->type.type_id;
 		}
 
 		serde2::Result serialize(WritableAssetArchive& writer) const override {

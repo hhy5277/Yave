@@ -23,16 +23,9 @@ SOFTWARE.
 #define EDITOR_WIDGETS_PROPERTYPANEL_H
 
 #include <editor/ui/Widget.h>
-
-namespace yave {
-class LightComponent;
-class RenderableComponent;
-class Transformable;
-}
+#include <yave/objects/Transformable.h>
 
 namespace editor {
-
-class EditorComponent;
 
 class PropertyPanel final : public Widget, public ContextLinked {
 	public:
@@ -43,13 +36,7 @@ class PropertyPanel final : public Widget, public ContextLinked {
 	private:
 		void paint_ui(CmdBufferRecorder&, const FrameToken&) override;
 
-		void panel(EditorComponent& component);
-		void panel(LightComponent& component);
-		void panel(RenderableComponent& component);
-
 		void transformable_panel(Transformable& transformable);
-
-
 
 		math::Vec3 _euler;
 };

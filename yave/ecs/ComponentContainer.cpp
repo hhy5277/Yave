@@ -32,21 +32,21 @@ struct MagicNumber{};
 
 usize registered_types_count() {
 	usize count = 0;
-	for(auto* i = registered_types_head; i; i = i->_next) {
+	for(auto* i = registered_types_head; i; i = i->next) {
 		++count;
 	}
 	return count;
 }
 
 void register_container_type(RegisteredContainerType* type, u64 type_id, create_container_t create_container) {
-	for(auto* i = registered_types_head; i; i = i->_next) {
-		y_debug_assert(i->_type_id != type_id);
+	for(auto* i = registered_types_head; i; i = i->next) {
+		y_debug_assert(i->type_id != type_id);
 	}
-	y_debug_assert(!type->_next);
+	y_debug_assert(!type->next);
 
-	type->_type_id = type_id;
-	type->_create_container = create_container;
-	type->_next = registered_types_head;
+	type->type_id = type_id;
+	type->create_container = create_container;
+	type->next = registered_types_head;
 	registered_types_head = type;
 }
 
@@ -64,12 +64,12 @@ std::unique_ptr<ComponentContainerBase> deserialize_container(ReadableAssetArchi
 	if(!reader(magic) || magic != type_hash<MagicNumber>() || !reader(type_id)) {
 		return nullptr;
 	}
-	for(auto* i = registered_types_head; i; i = i->_next) {
-		if(i->_type_id == type_id) {
-			if(i->_create_container) {
-				return i->_create_container(reader);
+	for(auto* i = registered_types_head; i; i = i->next) {
+		if(i->type_id == type_id) {
+			if(i->create_container) {
+				return i->create_container(reader);
 			} else {
-				log_msg("null function");
+				log_msg("Null component container deserialization function.", Log::Warning);
 				return nullptr;
 			}
 		}

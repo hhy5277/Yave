@@ -69,9 +69,13 @@ EntityId EntityIdPool::create() {
 }
 
 void EntityIdPool::recycle(EntityId id) {
+	y_debug_assert(id.is_valid());
 	_free.push_back(id._index);
-	_ids[id._index].clear();
-	--_size;
+	if(_ids[id._index].is_valid()) {
+		_ids[id._index].clear();
+		y_debug_assert(_size != 0);
+		--_size;
+	}
 }
 
 EntityIdPool::iterator EntityIdPool::begin() {

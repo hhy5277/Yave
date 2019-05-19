@@ -29,7 +29,7 @@ SOFTWARE.
 
 #include <y/io2/Buffer.h>
 
-#include <imgui/imgui_yave.h>
+#include <imgui/yave_imgui.h>
 
 #include <cinttypes>
 

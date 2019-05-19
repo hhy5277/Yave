@@ -23,6 +23,7 @@ SOFTWARE.
 #define EDITOR_WIDGETS_ENTITYVIEW_H
 
 #include <editor/ui/Widget.h>
+#include <yave/ecs/EntityId.h>
 
 namespace editor {
 
@@ -33,7 +34,7 @@ class EntityView final : public Widget, public ContextLinked {
 	private:
 		void paint_ui(CmdBufferRecorder&, const FrameToken&) override;
 
-		void add_light();
+		ecs::EntityId _hovered;
 };
 
 }

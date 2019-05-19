@@ -19,30 +19,43 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 **********************************/
+#ifndef EDITOR_PROPERTIES_PROPERTIES_H
+#define EDITOR_PROPERTIES_PROPERTIES_H
 
-#include "Frame.h"
+#include <editor/editor.h>
+#include <yave/ecs/EntityId.h>
 
-#include <imgui/yave_imgui.h>
+#include <editor/components/EditorComponent.h>
+#include <yave/components/LightComponent.h>
+#include <yave/components/RenderableComponent.h>
+
+namespace yave {
+namespace ecs {
+class EntityWorld;
+}
+}
 
 namespace editor {
 
-Frame::Frame(std::string_view title, u32 flags) : UiElement(title), _flags(flags) {
+struct ComponentTraits {
+	using ui_function_t = void (*)(ContextPtr, ecs::EntityId);
+
+	std::type_index type = typeid(void);
+	std::string_view name;
+	ui_function_t widget = nullptr;
+};
+
+ComponentTraits component_traits(std::type_index type);
+core::Vector<ComponentTraits> all_component_traits();
+
+void component_widget(std::type_index type, ContextPtr ctx, ecs::EntityId id);
+
+template<typename T>
+ComponentTraits component_traits() {
+	return component_traits(typeid(T));
 }
 
-void Frame::paint(CmdBufferRecorder& recorder, const FrameToken& token) {
-	if(!is_visible()) {
-		return;
-	}
-
-	// this breaks everthing that relies on getting focus (like popups)
-	// ImGui::SetNextWindowFocus();
-
-	ImGui::SetNextWindowBgAlpha(0.0f);
-	if(ImGui::BeginChild(_title_with_id.begin(), ImVec2(0, 0), false, _flags)) {
-		paint_ui(recorder, token);
-	}
-	ImGui::EndChild();
 
 }
 
-}
+#endif // EDITOR_PROPERTIES_PROPERTIES_H

@@ -55,6 +55,7 @@ void EntityWorld::flush() {
 	for(EntityId id : _deletions) {
 		_entities.recycle(id);
 	}
+	_deletions.clear();
 }
 
 core::String EntityWorld::type_name(ComponentTypeIndex index) const {

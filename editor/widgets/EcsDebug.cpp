@@ -29,7 +29,7 @@ SOFTWARE.
 #include <y/io2/File.h>
 #include <y/math/random.h>
 
-#include <imgui/imgui_yave.h>
+#include <imgui/yave_imgui.h>
 
 #include <map>
 
@@ -139,12 +139,12 @@ void EcsDebug::paint_ui(CmdBufferRecorder&, const FrameToken&) {
 			}
 		}
 		for(ecs::EntityId id : world.entities()) {
-			if(!world.has<EditorComponent>(id)) {
+			EditorComponent* comp = world.component<EditorComponent>(id);
+			if(!comp) {
 				continue;
 			}
 
-			EditorComponent& ec = world.component<EditorComponent>(id);
-			if(ImGui::TreeNode(fmt(ICON_FA_CUBE " %###%", ec.name(), id.index()).data())) {
+			if(ImGui::TreeNode(fmt(ICON_FA_CUBE " %###%", comp->name(), id.index()).data())) {
 				usize index = 0;
 				for(const core::String& n : entities[id.index()]) {
 					ImGui::Selectable(fmt(ICON_FA_PUZZLE_PIECE " %###%", n, index++).data());

@@ -73,14 +73,25 @@ class EntityWorld : NonCopyable {
 
 
 		template<typename T>
-		T& component(EntityId id) {
+		T* component(EntityId id) {
+			return container<T>()->template component_ptr<T>(id);
+		}
+
+		template<typename T>
+		const T* component(EntityId id) const {
+			return container<T>()->template component_ptr<T>(id);
+		}
+
+		/*template<typename T>
+		T& operator[](EntityId id) {
 			return container<T>()->template component<T>(id);
 		}
 
 		template<typename T>
-		const T& component(EntityId id) const {
+		const T& operator[](EntityId id) const {
 			return container<T>()->template component<T>(id);
-		}
+		}*/
+
 
 		template<typename T>
 		bool has(EntityId id) const {
