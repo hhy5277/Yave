@@ -22,12 +22,6 @@ SOFTWARE.
 #ifndef EDITOR_CONTEXT_UI_H
 #define EDITOR_CONTEXT_UI_H
 
-#include <editor/editor.h>
-#include <editor/widgets/CameraDebug.h>
-#include <editor/widgets/SettingsPanel.h>
-#include <editor/widgets/MemoryInfo.h>
-#include <editor/widgets/PerformanceMetrics.h>
-#include <editor/widgets/FileBrowser.h>
 #include <editor/widgets/MeshImporter.h>
 
 #include <unordered_map>

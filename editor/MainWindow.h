@@ -22,19 +22,11 @@ SOFTWARE.
 #ifndef EDITOR_MAINWINDOW_H
 #define EDITOR_MAINWINDOW_H
 
-#include <editor/editor.h>
-#include <editor/ui/Widget.h>
-
 #include <editor/context/EditorContext.h>
-#include <editor/EngineView.h>
-
-#include <editor/renderers/ImGuiRenderer.h>
+namespace editor { class ImGuiRenderer; }
 
 #include <yave/window/Window.h>
-#include <yave/device/Instance.h>
-#include <yave/device/Device.h>
 #include <yave/graphics/swapchain/swapchain.h>
-#include <yave/scene/SceneView.h>
 
 
 namespace editor {

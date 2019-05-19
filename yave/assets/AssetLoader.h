@@ -23,9 +23,6 @@ SOFTWARE.
 #define YAVE_ASSETS_ASSETLOADER_H
 
 #include <yave/device/DeviceLinked.h>
-#include <y/core/String.h>
-
-#include <yave/utils/serde.h>
 
 #include "AssetPtr.h"
 #include "AssetStore.h"

@@ -24,9 +24,6 @@ SOFTWARE.
 
 #include <yave/meshes/Bone.h>
 
-#include <yave/utils/serde.h>
-#include <yave/utils/serde.h>
-
 namespace yave {
 
 class AnimationChannel {

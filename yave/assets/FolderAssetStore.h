@@ -23,7 +23,6 @@ SOFTWARE.
 #ifndef YAVE_ASSETS_FOLDERASSETSTORE_H
 #define YAVE_ASSETS_FOLDERASSETSTORE_H
 
-#include <yave/utils/serde.h>
 #include <yave/utils/FileSystemModel.h>
 
 #include "AssetStore.h"

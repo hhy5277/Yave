@@ -23,6 +23,8 @@ SOFTWARE.
 #include "AssetRenamer.h"
 #include "ResourceBrowser.h"
 
+#include <yave/utils/FileSystemModel.h>
+
 #include <editor/context/EditorContext.h>
 
 #include <imgui/imgui_yave.h>

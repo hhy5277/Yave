@@ -24,7 +24,6 @@ SOFTWARE.
 
 #include <editor/editor.h>
 #include <yave/ecs/ecs.h>
-#include <y/core/String.h>
 
 #include <yave/utils/serde.h>
 

@@ -22,14 +22,6 @@ SOFTWARE.
 #ifndef EDITOR_CONTEXT_EDITORCONTEXT_H
 #define EDITOR_CONTEXT_EDITORCONTEXT_H
 
-#include <editor/editor.h>
-
-#include <y/core/Functor.h>
-#include <yave/device/DeviceLinked.h>
-#include <yave/utils/FileSystemModel.h>
-
-#include <yave/framegraph/FrameGraphResourcePool.h>
-
 #include <yave/ecs/EntityWorld.h>
 
 #include "Settings.h"
@@ -37,8 +29,6 @@ SOFTWARE.
 #include "Ui.h"
 #include "ThumbmailCache.h"
 #include "PickingManager.h"
-
-#include <mutex>
 
 namespace editor {
 

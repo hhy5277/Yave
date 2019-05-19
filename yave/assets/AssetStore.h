@@ -22,9 +22,6 @@ SOFTWARE.
 #ifndef YAVE_ASSETS_ASSETSTORE_H
 #define YAVE_ASSETS_ASSETSTORE_H
 
-#include <y/core/String.h>
-#include <y/io2/io.h>
-
 #include "AssetPtr.h"
 #include "AssetType.h"
 

@@ -22,9 +22,7 @@ SOFTWARE.
 #ifndef EDITOR_CONTEXT_SELECTION_H
 #define EDITOR_CONTEXT_SELECTION_H
 
-#include <editor/editor.h>
 #include <yave/objects/Light.h>
-#include <yave/objects/Transformable.h>
 #include <yave/objects/Renderable.h>
 
 #include <yave/material/Material.h>

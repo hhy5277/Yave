@@ -24,8 +24,6 @@ SOFTWARE.
 
 #include <editor/ui/Widget.h>
 
-#include <yave/scene/Scene.h>
-
 namespace editor {
 
 class EntityView final : public Widget, public ContextLinked {
