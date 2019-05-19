@@ -49,11 +49,7 @@ struct AssetTraits {
 			return core::Err();																\
 		}																					\
 		return core::Ok(Type(detail::device_from_loader(arc.loader()), std::move(data)));	\
-	}																						\
-	static Result load_asset(io2::ReaderRef reader, AssetLoader& loader) noexcept {			\
-		ReadableAssetArchive arc(reader, loader);											\
-		return load_asset(arc);																\
-	}																						\
+	}
 
 
 #define YAVE_DECLARE_ASSET_TRAITS(Type, LoadFrom, TypeEnum)									\

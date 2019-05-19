@@ -26,6 +26,7 @@ SOFTWARE.
 
 #include "AssetPtr.h"
 #include "AssetStore.h"
+#include "AssetArchive.h"
 
 #include <unordered_map>
 #include <typeindex>
@@ -90,7 +91,8 @@ class AssetLoader : NonCopyable, public DeviceLinked {
 
 					if(auto reader = loader.store().data(id)) {
 						y_profile_zone("loading");
-						if(auto asset = traits::load_asset(reader.unwrap(), loader)) {
+						ReadableAssetArchive arc(reader.unwrap(), loader);
+						if(auto asset = traits::load_asset(arc)) {
 							weak_ptr = asset_ptr = make_asset_with_id<T>(id, std::move(asset.unwrap()));
 							return core::Ok(asset_ptr);
 						}
