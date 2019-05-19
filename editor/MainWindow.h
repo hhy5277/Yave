@@ -23,13 +23,13 @@ SOFTWARE.
 #define EDITOR_MAINWINDOW_H
 
 #include <editor/context/EditorContext.h>
-namespace editor { class ImGuiRenderer; }
 
 #include <yave/window/Window.h>
 #include <yave/graphics/swapchain/swapchain.h>
 
-
 namespace editor {
+
+class ImGuiRenderer;
 
 class MainWindow : private Window, public ContextLinked {
 
