@@ -81,7 +81,7 @@ void AssetStringifier::stringify(AssetId id) {
 	core::DebugTimer timer("Stringify mesh");
 
 	MeshData mesh;
-	serde2::ReadableArchive ar(data.unwrap());
+	serde2::ReadableArchive ar(*data.unwrap());
 	if(!mesh.deserialize(ar)) {
 		log_msg("Unable to load mesh.", Log::Error);
 		clear();

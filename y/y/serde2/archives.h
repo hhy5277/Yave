@@ -54,11 +54,7 @@ template<typename Derived>
 class ReadableArchiveBase : public ReadableArchiveTag {
 
 	public:
-		ReadableArchiveBase(io2::Reader&& reader) : _reader(std::move(reader)) {
-		}
-
-		template<typename T>
-		ReadableArchiveBase(T&& t) : _reader(y_fwd(t)) {
+		ReadableArchiveBase(io2::Reader& reader) : _reader(reader) {
 		}
 
 		template<typename T, typename... Args>
@@ -92,19 +88,16 @@ class ReadableArchiveBase : public ReadableArchiveTag {
 			return core::Ok();
 		}
 
-		io2::Reader _reader;
+		io2::Reader& _reader;
 };
 
 template<typename Derived>
 class WritableArchiveBase : public WritableArchiveTag {
 
 	public:
-		WritableArchiveBase(io2::Writer&& writer) : _writer(std::move(writer)) {
+		WritableArchiveBase(io2::Writer& writer) : _writer(writer) {
 		}
 
-		template<typename T>
-		WritableArchiveBase(T&& t) : _writer(y_fwd(t)) {
-		}
 
 		template<typename T, typename... Args>
 		Result operator()(const T& t, const Args&... args) {
@@ -137,7 +130,7 @@ class WritableArchiveBase : public WritableArchiveTag {
 			return core::Ok();
 		}
 
-		io2::Writer _writer;
+		io2::Writer& _writer;
 };
 
 

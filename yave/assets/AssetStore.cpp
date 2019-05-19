@@ -60,7 +60,7 @@ AssetStore::Result<> AssetStore::rename(std::string_view from, std::string_view 
 	return core::Err(ErrorType::UnknownID);
 }
 
-AssetStore::Result<> AssetStore::write(AssetId id, io2::ReaderRef data) {
+AssetStore::Result<> AssetStore::write(AssetId id, io2::Reader& data) {
 	unused(id, data);
 	return core::Err(ErrorType::UnsupportedOperation);
 }
@@ -68,7 +68,7 @@ AssetStore::Result<> AssetStore::write(AssetId id, io2::ReaderRef data) {
 AssetStore::Result<AssetType> AssetStore::asset_type(AssetId id) const {
 	auto dat = data(id);
 	if(dat) {
-		auto& reader = dat.unwrap();
+		auto& reader = *dat.unwrap();
 		using magic_t = decltype(fs::magic_number);
 		if(reader.read_one<magic_t>().unwrap_or(0) == fs::magic_number) {
 			if(auto type = reader.read_one<AssetType>()) {

@@ -70,13 +70,13 @@ class FolderAssetStore final : public AssetStore {
 
 		const FileSystemModel* filesystem() const override;
 
-		Result<AssetId> import(io2::ReaderRef data, std::string_view dst_name) override;
-		Result<> write(AssetId id, io2::ReaderRef data) override;
+		Result<AssetId> import(io2::Reader& data, std::string_view dst_name) override;
+		Result<> write(AssetId id, io2::Reader& data) override;
 
 		Result<AssetId> id(std::string_view name) const override;
 		Result<core::String> name(AssetId id) const override;
 
-		Result<io2::Reader> data(AssetId id) const override;
+		Result<io2::ReaderPtr> data(AssetId id) const override;
 
 		Result<> remove(AssetId id) override;
 		Result<> rename(AssetId id, std::string_view new_name) override;

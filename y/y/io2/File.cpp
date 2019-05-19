@@ -70,7 +70,7 @@ core::Result<File> File::open(const core::String& name) {
 	return core::Err();
 }
 
-core::Result<void> File::copy(ReaderRef src, const core::String& dst) {
+core::Result<void> File::copy(Reader& src, const core::String& dst) {
 	auto f = create(dst);
 	if(!f) {
 		return core::Err();

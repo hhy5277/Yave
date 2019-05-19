@@ -77,7 +77,7 @@ void EcsDebug::paint_ui(CmdBufferRecorder&, const FrameToken&) {
 
 	if(ImGui::Button(ICON_FA_SAVE " Save")) {
 		if(auto file = io2::File::create("world.yw")) {
-			WritableAssetArchive ar(std::move(file.unwrap()));
+			WritableAssetArchive ar(file.unwrap());
 			if(!world.serialize(ar)) {
 				log_msg("Unable to serialize world");
 			}
@@ -91,7 +91,7 @@ void EcsDebug::paint_ui(CmdBufferRecorder&, const FrameToken&) {
 
 		if(auto file = io2::File::open("world.yw")) {
 			ecs::EntityWorld w;
-			ReadableAssetArchive ar(std::move(file.unwrap()), context()->loader());
+			ReadableAssetArchive ar(file.unwrap(), context()->loader());
 			if(!w.deserialize(ar)) {
 				log_msg("Unable to load world.");
 			}

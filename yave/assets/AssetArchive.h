@@ -35,10 +35,12 @@ using WritableAssetArchive = serde2::WritableArchive;
 class ReadableAssetArchive : public serde2::ReadableArchiveBase<ReadableAssetArchive> {
 
 	public:
-		template<typename Arc>
-		ReadableAssetArchive(Arc&& arc, AssetLoader& loader) :
-				serde2::ReadableArchiveBase<ReadableAssetArchive>(y_fwd(arc)),
+		ReadableAssetArchive(io2::Reader& reader, AssetLoader& loader) :
+				serde2::ReadableArchiveBase<ReadableAssetArchive>(reader),
 				_loader(loader) {
+		}
+
+		ReadableAssetArchive(const io2::ReaderPtr& reader, AssetLoader& loader) : ReadableAssetArchive(*reader, loader) {
 		}
 
 		AssetLoader& loader() {

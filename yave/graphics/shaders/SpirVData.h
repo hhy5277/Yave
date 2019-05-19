@@ -37,7 +37,7 @@ class SpirVData {
 
 		const u32* data() const;
 
-		static SpirVData deserialized(io2::ReaderRef reader);
+		static SpirVData deserialized(io2::Reader& reader);
 
 	private:
 		SpirVData(core::ArrayView<u32> data);

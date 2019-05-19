@@ -38,7 +38,7 @@ SpirVData::SpirVData(core::ArrayView<u32> data) : _data(data) {
 	}
 }
 
-SpirVData SpirVData::deserialized(io2::ReaderRef reader) {
+SpirVData SpirVData::deserialized(io2::Reader& reader) {
 	core::Vector<u8> data;
 	reader.read_all(data).unwrap();
 	return SpirVData(data);

@@ -166,7 +166,7 @@ AssetStore::Result<> FolderAssetStore::write_index() const {
 	return core::Ok();
 }
 
-AssetStore::Result<AssetId> FolderAssetStore::import(io2::ReaderRef data, std::string_view dst_name) {
+AssetStore::Result<AssetId> FolderAssetStore::import(io2::Reader& data, std::string_view dst_name) {
 	std::unique_lock lock(_lock);
 
 	{
@@ -220,19 +220,23 @@ AssetStore::Result<core::String> FolderAssetStore::name(AssetId id) const {
 	return core::Err(ErrorType::UnknownID);
 }
 
-AssetStore::Result<io2::Reader> FolderAssetStore::data(AssetId id) const {
+AssetStore::Result<io2::ReaderPtr> FolderAssetStore::data(AssetId id) const {
 	y_profile();
 	std::unique_lock lock(_lock);
-
 	y_debug_assert(_from_id.size() == _from_name.size());
-	if(auto it = _from_id.find(id); it != _from_id.end()) {
-		auto filename = _filesystem.join(_filesystem.root_path(), it->second->name);
-		if(auto file = io2::File::open(filename)) {
-			return core::Ok(io2::Reader(std::move(file.unwrap())));
-		}
+
+	auto it = _from_id.find(id);
+	if( it == _from_id.end()) {
+		return core::Err(ErrorType::UnknownID);
+	}
+
+	auto file = io2::File::open(_filesystem.join(_filesystem.root_path(), it->second->name));
+	if(!file) {
 		return core::Err(ErrorType::FilesytemError);
 	}
-	return core::Err(ErrorType::UnknownID);
+
+	io2::ReaderPtr ptr = std::make_unique<io2::File>(std::move(file.unwrap()));
+	return core::Ok(std::move(ptr));
 }
 
 
@@ -351,7 +355,7 @@ AssetStore::Result<> FolderAssetStore::rename(std::string_view from, std::string
 	return core::Err(ErrorType::UnknownID);
 }
 
-AssetStore::Result<> FolderAssetStore::write(AssetId id, io2::ReaderRef data) {
+AssetStore::Result<> FolderAssetStore::write(AssetId id, io2::Reader& data) {
 	std::unique_lock lock(_lock);
 
 	y_debug_assert(_from_id.size() == _from_name.size());
