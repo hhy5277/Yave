@@ -61,6 +61,13 @@ class EntityWorld : NonCopyable {
 
 
 
+		core::Result<void> create_component(EntityId id, ComponentTypeIndex type) {
+			if(ComponentContainerBase* cont = container(type)) {
+				return cont->create_empty(id);
+			}
+			return core::Err();
+		}
+
 		template<typename T, typename... Args>
 		T& create_component(EntityId id, Args&&... args) {
 			return container<T>()->template create<T>(id, y_fwd(args)...);
@@ -165,13 +172,6 @@ class EntityWorld : NonCopyable {
 			return container(index_for_type<T>());
 		}
 
-		const ComponentContainerBase* container(ComponentTypeIndex type) const {
-			if(auto it = _component_containers.find(type); it != _component_containers.end()) {
-				return it->second.get();
-			}
-			return nullptr;
-		}
-
 
 		template<typename T, typename... Args>
 		std::tuple<ComponentVector<T>&, ComponentVector<Args>&...> typed_component_vectors() const {
@@ -188,6 +188,8 @@ class EntityWorld : NonCopyable {
 		}
 
 
+		const ComponentContainerBase* container(ComponentTypeIndex type) const;
+		ComponentContainerBase* container(ComponentTypeIndex type);
 
 		EntityIdPool _entities;
 		core::Vector<EntityId> _deletions;

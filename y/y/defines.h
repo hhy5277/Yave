@@ -33,7 +33,7 @@ struct Nothing;
 
 #define Y_TODO(...) /* __VA_ARGS__ */
 
-#ifndef NDEBUG
+#if defined(NDEBUG) && !defined(Y_DEBUG)
 #define Y_DEBUG
 #endif
 

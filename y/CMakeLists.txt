@@ -20,16 +20,18 @@ file(GLOB_RECURSE TEST_FILES
 		"tests/*.cpp"
 	)
 
+
 add_library(y STATIC ${SOURCE_FILES})
 #target_link_libraries(y pthread)
 target_compile_options(y PUBLIC ${Y_COMPILE_OPTIONS})
 
 
-if(CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo)
+option(Y_FORCE_ASSERTS "Build asserts even in release" OFF)
+if((Y_FORCE_ASSERTS) OR (CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo))
 	target_compile_options(y PUBLIC "-DY_DEBUG")
 endif()
 
-if(CMAKE_BUILD_TYPE STREQUAL Release)
+if((NOT Y_FORCE_ASSERTS) AND (CMAKE_BUILD_TYPE STREQUAL Release))
 	target_compile_options(y PUBLIC "-DY_NO_DEBUG")
 endif()
 

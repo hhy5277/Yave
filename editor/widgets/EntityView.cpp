@@ -22,8 +22,7 @@ SOFTWARE.
 #include "EntityView.h"
 
 #include <editor/context/EditorContext.h>
-#include <editor/components/EditorComponent.h>
-#include <yave/components/LightComponent.h>
+#include <editor/components/ComponentTraits.h>
 
 #include <yave/ecs/EntityWorld.h>
 
@@ -84,10 +83,23 @@ void EntityView::paint_ui(CmdBufferRecorder&, const FrameToken&) {
 		}
 
 		if(ImGui::BeginPopup("###contextmenu")) {
-			if(ImGui::Selectable(ICON_FA_PLUS " Add component")) {
+			if(ImGui::BeginMenu(ICON_FA_PLUS " Add component")) {
+				core::Vector<ComponentTraits> traits = all_component_traits();
+				for(const ComponentTraits& t : traits) {
+					if(t.name.empty()) {
+						continue;
+					}
+					if(ImGui::MenuItem(fmt(ICON_FA_PUZZLE_PIECE " %", t.name).data())) {
+						if(!world.create_component(_hovered, t.type)) {
+							log_msg("Unable to create component.", Log::Error);
+						}
+					}
+				}
+				ImGui::EndMenu();
 			}
+
 			ImGui::Separator();
-			if(ImGui::Selectable("Delete")) {
+			if(ImGui::Selectable(ICON_FA_TIMES " Delete")) {
 				world.remove_entity(_hovered);
 				// we don't unselect the ID to make sure that we can handle case where the id is invalid
 			}

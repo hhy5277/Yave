@@ -57,6 +57,7 @@ ComponentTraits component_traits(std::type_index type) {
 }
 
 core::Vector<ComponentTraits> all_component_traits() {
+	y_profile();
 	core::Vector<ComponentTraits> traits;
 	for(auto* i = registered_types_head; i; i = i->next) {
 		traits << i->traits;

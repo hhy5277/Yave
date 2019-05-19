@@ -62,6 +62,22 @@ core::String EntityWorld::type_name(ComponentTypeIndex index) const {
 	return y::detail::demangle_type_name(index.name());
 }
 
+
+const ComponentContainerBase* EntityWorld::container(ComponentTypeIndex type) const {
+	if(auto it = _component_containers.find(type); it != _component_containers.end()) {
+		return it->second.get();
+	}
+	return nullptr;
+}
+
+ComponentContainerBase* EntityWorld::container(ComponentTypeIndex type) {
+	auto& container = _component_containers[type];
+	if(!container) {
+		container = detail::create_container(type);
+	}
+	return container.get();
+}
+
 serde2::Result EntityWorld::serialize(WritableAssetArchive& writer) const {
 	if(!writer(u64(_entities.size()))) {
 		return core::Err();
