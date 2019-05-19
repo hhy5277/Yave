@@ -36,18 +36,18 @@ namespace ecs {
 
 class EntityWorld : NonCopyable {
 
-	using index_type = typename EntityId::index_type;
-
 	public:
 		template<typename... Args>
-		using EntityView = View<false, index_type, Args...>;
+		using EntityView = View<false, Args...>;
 		template<typename... Args>
-		using ConstEntityView = View<true, index_type, Args...>;
+		using ConstEntityView = View<true, Args...>;
 
 		EntityWorld();
 
 		EntityId create_entity();
 		void remove_entity(EntityId id);
+
+		bool exists(EntityId id) const;
 
 		const EntityIdPool& entities() const;
 
@@ -82,6 +82,11 @@ class EntityWorld : NonCopyable {
 			return container<T>()->template component<T>(id);
 		}
 
+		template<typename T>
+		bool has(EntityId id) const {
+			return exists(id) && container<T>()->template has<T>(id);
+		}
+
 
 
 		template<typename T>
@@ -110,13 +115,13 @@ class EntityWorld : NonCopyable {
 
 
 		template<typename T>
-		core::Span<index_type> indexes() const {
+		core::Span<EntityIndex> indexes() const {
 			return indexes(index_for_type<T>());
 		}
 
-		core::Span<index_type> indexes(ComponentTypeIndex type) const {
+		core::Span<EntityIndex> indexes(ComponentTypeIndex type) const {
 			const ComponentContainerBase* cont = container(type);
-			return cont ? cont->indexes() : core::Span<index_type>();
+			return cont ? cont->indexes() : core::Span<EntityIndex>();
 		}
 
 
@@ -154,7 +159,7 @@ class EntityWorld : NonCopyable {
 
 
 		template<typename T, typename... Args>
-		std::tuple<core::SparseVector<T, index_type>&, core::SparseVector<Args, index_type>&...> typed_component_vectors() const {
+		std::tuple<ComponentVector<T>&, ComponentVector<Args>&...> typed_component_vectors() const {
 			if constexpr(sizeof...(Args)) {
 				return std::tuple_cat(typed_component_vectors<T>(),
 									  typed_component_vectors<Args...>());

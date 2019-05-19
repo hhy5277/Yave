@@ -1,5 +1,5 @@
 /*******************************
-Copyright (c) 2016-2019 Grégoire Angerand
+Copyright (c) 2016-2019 Gr�goire Angerand
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,66 +19,29 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 **********************************/
-#ifndef Y_CORE_RANGE_H
-#define Y_CORE_RANGE_H
+#ifndef YAVE_COMPONENTS_LIGHTCOMPONENT_H
+#define YAVE_COMPONENTS_LIGHTCOMPONENT_H
 
-#include <y/utils.h>
+#include <yave/objects/Light.h>
 
-namespace y {
-namespace core {
+namespace yave {
 
-template<typename Iter, typename EndIter = Iter>
-class Range {
+class LightComponent final {
 	public:
-		using iterator_traits = std::iterator_traits<Iter>;
+		LightComponent() = default;
 
-		using iterator = Iter;
-		using const_iterator = Iter;
-
-		Range(Iter b, EndIter e) : _beg(b), _end(e) {
+		Light& light() {
+			return _light;
 		}
 
-		template<typename Coll>
-		Range(const Coll& col) : Range(col.begin(), col.end()) {
-		}
-
-		template<typename Coll>
-		Range(Coll& col) : Range(col.begin(), col.end()) {
-		}
-
-		Iter begin() const {
-			return _beg;
-		}
-
-		EndIter end() const {
-			return _end;
-		}
-
-		usize size() const {
-			if constexpr(std::is_same_v<Iter, EndIter>) {
-				return std::distance(_beg, _end);
-			} else {
-				usize s = 0;
-				for(auto&& k : *this) {
-					unused(k);
-					++s;
-				}
-				return s;
-			}
+		const Light& light() const {
+			return _light;
 		}
 
 	private:
-		Iter _beg;
-		EndIter _end;
+		Light _light;
 };
 
-template<typename Coll>
-Range(const Coll&) -> Range<typename Coll::const_iterator>;
-
-template<typename Coll>
-Range(Coll&) -> Range<typename Coll::iterator>;
-
-}
 }
 
-#endif // Y_CORE_RANGE_H
+#endif // YAVE_COMPONENTS_LIGHTCOMPONENT_H

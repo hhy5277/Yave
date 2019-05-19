@@ -23,7 +23,7 @@ SOFTWARE.
 #define YAVE_ECS_COMPONENTCONTAINER_H
 
 #include "ecs.h"
-#include "EntityIdPool.h"
+#include "EntityId.h"
 
 #include <yave/assets/AssetArchive.h>
 #include <y/core/SparseVector.h>
@@ -31,6 +31,10 @@ SOFTWARE.
 
 namespace yave {
 namespace ecs {
+
+template<typename T>
+using ComponentVector = core::SparseVector<T, EntityIndex>;
+
 
 class ComponentContainerBase;
 
@@ -67,14 +71,12 @@ void register_container_type(RegisteredContainerType* type, create_container_t c
 
 class ComponentContainerBase : NonMovable {
 	public:
-		using index_type = typename EntityId::index_type;
-
 		virtual ~ComponentContainerBase() {
 		}
 
 		virtual void remove(core::ArrayView<EntityId> ids) = 0;
 		virtual bool has(EntityId id) const = 0;
-		virtual core::Span<index_type> indexes() const = 0;
+		virtual core::Span<EntityIndex> indexes() const = 0;
 
 		ComponentTypeIndex type() const {
 			return _type;
@@ -143,7 +145,7 @@ class ComponentContainerBase : NonMovable {
 
 	protected:
 		template<typename T>
-		ComponentContainerBase(core::SparseVector<T, index_type>& sparse) :
+		ComponentContainerBase(ComponentVector<T>& sparse) :
 				_sparse_ptr(&sparse),
 				_type(index_for_type<T>()) {
 		}
@@ -153,13 +155,13 @@ class ComponentContainerBase : NonMovable {
 		template<typename T>
 		auto& component_vector_fast() {
 			y_debug_assert(type() == index_for_type<T>());
-			return (*static_cast<core::SparseVector<T, index_type>*>(_sparse_ptr));
+			return (*static_cast<ComponentVector<T>*>(_sparse_ptr));
 		}
 
 		template<typename T>
 		const auto& component_vector_fast() const {
 			y_debug_assert(type() == index_for_type<T>());
-			return (*static_cast<const core::SparseVector<T, index_type>*>(_sparse_ptr));
+			return (*static_cast<const ComponentVector<T>*>(_sparse_ptr));
 		}
 
 	private:
@@ -200,12 +202,12 @@ class ComponentContainer final : public ComponentContainerBase {
 			return ComponentContainerBase::has<T>(id);
 		}
 
-		core::Span<index_type> indexes() const override {
+		core::Span<EntityIndex> indexes() const override {
 			return _components.indexes();
 		}
 
 	private:
-		core::SparseVector<T, index_type> _components;
+		ComponentVector<T> _components;
 
 
 
@@ -240,7 +242,7 @@ class ComponentContainer final : public ComponentContainerBase {
 				}
 				for(u64 i = 0; i != component_count; ++i) {
 					u64 id = 0;
-					if(!reader(id) || !reader(_components.insert(index_type(id)))) {
+					if(!reader(id) || !reader(_components.insert(EntityIndex(id)))) {
 						return core::Err();
 					}
 				}

@@ -35,13 +35,11 @@ class EditorComponent {
 		EditorComponent(std::string_view name);
 
 		const core::String& name() const;
-		bool is_visible() const;
 
-		y_serde2(_name, _visible)
+		y_serde2(_name)
 
 	private:
-		core::String _name;
-		bool _visible = true;
+		core::String _name = "Unnamed entity";
 };
 
 }

@@ -131,18 +131,22 @@ void EcsDebug::paint_ui(CmdBufferRecorder&, const FrameToken&) {
 
 	ImGui::Spacing();
 	if(ImGui::TreeNode("Components")) {
-		std::map<typename ecs::EntityId::index_type, core::Vector<core::String>> entities;
+		std::map<typename ecs::EntityIndex, core::Vector<core::String>> entities;
 		for(auto& type : world.component_containers()) {
 			core::String name = clean_name(world.type_name(type.first));
 			for(auto ids : world.indexes(type.first)) {
 				entities[ids] << name;
 			}
 		}
-		for(const auto& ent : entities) {
-			EditorComponent& ec = world.component<EditorComponent>(ecs::EntityId(ent.first));
-			if(ImGui::TreeNode(fmt(ICON_FA_CUBE " %###%", ec.name(), ent.first).data())) {
+		for(ecs::EntityId id : world.entities()) {
+			if(!world.has<EditorComponent>(id)) {
+				continue;
+			}
+
+			EditorComponent& ec = world.component<EditorComponent>(id);
+			if(ImGui::TreeNode(fmt(ICON_FA_CUBE " %###%", ec.name(), id.index()).data())) {
 				usize index = 0;
-				for(const core::String& n : ent.second) {
+				for(const core::String& n : entities[id.index()]) {
 					ImGui::Selectable(fmt(ICON_FA_PUZZLE_PIECE " %###%", n, index++).data());
 				}
 				ImGui::TreePop();

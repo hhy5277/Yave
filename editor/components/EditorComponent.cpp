@@ -31,8 +31,4 @@ const core::String& EditorComponent::name() const {
 	return _name;
 }
 
-bool EditorComponent::is_visible() const {
-	return _visible;
-}
-
 }

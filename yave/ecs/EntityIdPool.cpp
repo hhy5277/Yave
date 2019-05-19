@@ -25,46 +25,12 @@ SOFTWARE.
 namespace yave {
 namespace ecs {
 
-
-EntityId::EntityId(index_type index) : _index(index), _version(0) {
-}
-
-void EntityId::clear() {
-	y_debug_assert(is_valid());
-	y_debug_assert(_version != invalid_index);
-	_index = invalid_index;
-}
-
-void EntityId::set(index_type index) {
-	y_debug_assert(!is_valid());
-	_index = index;
-	++_version;
-}
-
-EntityId::index_type EntityId::index() const {
-	return _index;
-}
-
-bool EntityId::is_valid() const {
-	return _index != invalid_index;
-}
-
-bool EntityId::operator==(const EntityId& other) const {
-	return std::tie(_index, _version) == std::tie(other._index, other._version);
-}
-
-bool EntityId::operator!=(const EntityId& other) const {
-	return std::tie(_index, _version) != std::tie(other._index, other._version);
-}
-
-
-
 EntityIdPool::EntityIdPool() {
 	_ids.emplace_back();
 }
 
-core::Result<void> EntityIdPool::create_with_index(index_type index) {
-	y_debug_assert(EntityId(index).is_valid());
+core::Result<void> EntityIdPool::create_with_index(EntityIndex index) {
+	y_debug_assert(EntityId::from_unversioned_index(index).is_valid());
 	_ids.set_min_capacity(index);
 	while(usize(index + 1) >= _ids.size()) {
 		_ids.emplace_back();
@@ -82,16 +48,21 @@ core::Result<void> EntityIdPool::create_with_index(index_type index) {
 	return core::Err();
 }
 
+bool EntityIdPool::contains(EntityId id) const {
+	auto index = id.index();
+	return index < _ids.size() && _ids[index] == id;
+}
+
 EntityId EntityIdPool::create() {
 	++_size;
 	if(!_free.is_empty()) {
-		index_type index = _free.pop();
+		EntityIndex index = _free.pop();
 		_ids[index].set(index);
 		return _ids[index];
 	}
 
 	y_debug_assert(!_ids.is_empty());
-	index_type index = index_type(_ids.size() - 1);
+	EntityIndex index = EntityIndex(_ids.size() - 1);
 	_ids.last().set(index);
 	_ids.emplace_back();
 	return _ids[index];

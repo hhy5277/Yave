@@ -22,13 +22,11 @@ SOFTWARE.
 #include "EntityView.h"
 
 #include <editor/context/EditorContext.h>
+#include <editor/components/EditorComponent.h>
 
-#include <yave/objects/Light.h>
+#include <yave/ecs/EntityWorld.h>
 
 #include <imgui/imgui_yave.h>
-
-// remove:
-#include <yave/material/Material.h>
 
 namespace editor {
 
@@ -61,23 +59,35 @@ void EntityView::add_light() {
 }
 
 void EntityView::paint_ui(CmdBufferRecorder&, const FrameToken&) {
-	/*if(ImGui::Button(ICON_FA_PLUS, math::Vec2(24))) {
+	ecs::EntityWorld& world = context()->world();
+
+	if(ImGui::Button(ICON_FA_PLUS, math::Vec2(24))) {
 		ImGui::OpenPopup("Add entity");
 	}
 
 	if(ImGui::BeginPopup("Add entity")) {
-		if(ImGui::MenuItem("Add light")) {
-			add_light();
-		}
-		if(ImGui::MenuItem("Add renderable")) {
-			auto instance = std::make_unique<StaticMeshInstance>(device()->device_resources()[DeviceResources::CubeMesh], device()->device_resources()[DeviceResources::EmptyMaterial]);
-			instance->transform() = math::Transform<>(math::Vec3(0.0f, 0.0f, 0.0f), math::identity(), math::Vec3(0.1f));
-			context()->scene().scene().static_meshes() << std::move(instance);
+		if(ImGui::MenuItem("Add entity")) {
+			ecs::EntityId id = world.create_entity();
+			world.create_component<EditorComponent>(id);
 		}
 		ImGui::EndPopup();
 	}
 
-	if(ImGui::TreeNode(ICON_FA_FOLDER " Renderables")) {
+	for(ecs::EntityId id : world.entities()) {
+		if(!world.has<EditorComponent>(id)) {
+			log_msg("Entity is missing EditorComponent.", Log::Warning);
+			continue;
+		}
+
+		EditorComponent& comp = world.component<EditorComponent>(id);
+		bool selected = context()->selection().selected_entity() == id;
+		if(ImGui::Selectable(fmt(ICON_FA_CUBE " %", comp.name()).data(), &selected)) {
+			 context()->selection().set_selected(id);
+		}
+	}
+
+
+	/*if(ImGui::TreeNode(ICON_FA_FOLDER " Renderables")) {
 		for(const auto& r : context()->scene().scene().renderables()) {
 			bool selected = r.get() == context()->selection().renderable();
 			ImGui::Selectable(fmt(ICON_FA_QUESTION " %##%", type_name(*r), static_cast<void*>(r.get())).data(), &selected);

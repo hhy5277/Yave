@@ -26,6 +26,7 @@ SOFTWARE.
 #include <yave/objects/Renderable.h>
 
 #include <yave/material/Material.h>
+#include <yave/ecs/EntityIdPool.h>
 
 namespace editor {
 
@@ -98,11 +99,25 @@ class Selection {
 			return _material;
 		}
 
+
+		bool has_selected_entity() const {
+			return _id.is_valid();
+		}
+
+		ecs::EntityId selected_entity() const {
+			return _id;
+		}
+
+		void set_selected(ecs::EntityId id) {
+			id = _id;
+		}
+
 	private:
 		NotOwner<Transformable*> _transformable = nullptr;
 		NotOwner<Renderable*> _renderable = nullptr;
 		NotOwner<Light*> _light = nullptr;
 		AssetPtr<Material> _material;
+		ecs::EntityId _id;
 };
 
 }

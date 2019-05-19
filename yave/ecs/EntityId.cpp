@@ -1,5 +1,5 @@
 /*******************************
-Copyright (c) 2016-2019 Grégoire Angerand
+Copyright (c) 2016-2019 Gr�goire Angerand
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,66 +19,47 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 **********************************/
-#ifndef Y_CORE_RANGE_H
-#define Y_CORE_RANGE_H
 
-#include <y/utils.h>
+#include "EntityId.h"
 
-namespace y {
-namespace core {
+namespace yave {
+namespace ecs {
 
-template<typename Iter, typename EndIter = Iter>
-class Range {
-	public:
-		using iterator_traits = std::iterator_traits<Iter>;
+EntityId EntityId::from_unversioned_index(index_type index) {
+	EntityId id;
+	id._index = index;
+	id._version = 0;
+	return id;
+}
 
-		using iterator = Iter;
-		using const_iterator = Iter;
+void EntityId::clear() {
+	y_debug_assert(is_valid());
+	y_debug_assert(_version != invalid_index);
+	_index = invalid_index;
+}
 
-		Range(Iter b, EndIter e) : _beg(b), _end(e) {
-		}
+void EntityId::set(index_type index) {
+	y_debug_assert(!is_valid());
+	_index = index;
+	++_version;
+}
 
-		template<typename Coll>
-		Range(const Coll& col) : Range(col.begin(), col.end()) {
-		}
+EntityId::index_type EntityId::index() const {
+	return _index;
+}
 
-		template<typename Coll>
-		Range(Coll& col) : Range(col.begin(), col.end()) {
-		}
+bool EntityId::is_valid() const {
+	return _index != invalid_index;
+}
 
-		Iter begin() const {
-			return _beg;
-		}
+bool EntityId::operator==(const EntityId& other) const {
+	return std::tie(_index, _version) == std::tie(other._index, other._version);
+}
 
-		EndIter end() const {
-			return _end;
-		}
+bool EntityId::operator!=(const EntityId& other) const {
+	return std::tie(_index, _version) != std::tie(other._index, other._version);
+}
 
-		usize size() const {
-			if constexpr(std::is_same_v<Iter, EndIter>) {
-				return std::distance(_beg, _end);
-			} else {
-				usize s = 0;
-				for(auto&& k : *this) {
-					unused(k);
-					++s;
-				}
-				return s;
-			}
-		}
-
-	private:
-		Iter _beg;
-		EndIter _end;
-};
-
-template<typename Coll>
-Range(const Coll&) -> Range<typename Coll::const_iterator>;
-
-template<typename Coll>
-Range(Coll&) -> Range<typename Coll::iterator>;
 
 }
 }
-
-#endif // Y_CORE_RANGE_H

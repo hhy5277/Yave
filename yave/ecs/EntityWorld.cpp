@@ -39,6 +39,10 @@ void EntityWorld::remove_entity(EntityId id) {
 	}
 }
 
+bool EntityWorld::exists(EntityId id) const {
+	return _entities.contains(id);
+}
+
 const EntityIdPool& EntityWorld::entities() const {
 	return _entities;
 }
@@ -91,7 +95,7 @@ serde2::Result EntityWorld::deserialize(ReadableAssetArchive& reader) {
 		if(!reader(index)) {
 			return core::Err();
 		}
-		_entities.create_with_index(index_type(index)).unwrap();
+		_entities.create_with_index(EntityIndex(index)).unwrap();
 	}
 
 	u32 container_count = 0;

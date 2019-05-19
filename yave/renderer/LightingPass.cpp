@@ -23,6 +23,8 @@ SOFTWARE.
 #include "LightingPass.h"
 
 #include <yave/device/Device.h>
+#include <yave/components/LightComponent.h>
+#include <yave/ecs/EntityWorld.h>
 
 #include <y/core/Chrono.h>
 #include <y/io2/File.h>
@@ -132,17 +134,32 @@ LightingPass LightingPass::create(FrameGraph& framegraph, const GBufferPass& gbu
 
 
 			TypedMapping<uniform::Light> mapping = self->resources()->mapped_buffer(light_buffer);
+
 			Y_TODO(We should not need this)
-			if(scene.has_scene()) {
-				usize light_count = scene.scene().lights().size();
-				for(const auto& l : scene.scene().lights()) {
-					if(l->type() == Light::Point) {
-						mapping[push_data.point_count++] = *l;
-					} else {
-						mapping[light_count - ++push_data.directional_count] = *l;
+			{
+				if(scene.has_scene()) {
+					usize light_count = scene.scene().lights().size();
+					for(const auto& l : scene.scene().lights()) {
+						if(l->type() == Light::Point) {
+							mapping[push_data.point_count++] = *l;
+						} else {
+							mapping[light_count - ++push_data.directional_count] = *l;
+						}
+					}
+				}
+				if(scene.has_world()) {
+					const auto& lights = scene.world().components<LightComponent>();
+					usize light_count = lights.size();
+					for(const auto& l : lights) {
+						if(l.light().type() == Light::Point) {
+							mapping[push_data.point_count++] = l.light();
+						} else {
+							mapping[light_count - ++push_data.directional_count] = l.light();
+						}
 					}
 				}
 			}
+
 			const auto& program = recorder.device()->device_resources()[DeviceResources::DeferredLightingProgram];
 			recorder.dispatch_size(program, size, {self->descriptor_sets()[0]}, push_data);
 		});

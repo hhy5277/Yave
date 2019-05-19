@@ -26,7 +26,7 @@ SOFTWARE.
 
 namespace yave {
 
-class RenderableComponent {
+class RenderableComponent final {
 	public:
 		RenderableComponent(std::unique_ptr<Renderable> r) : _renderable(std::move(r)) {
 		}
