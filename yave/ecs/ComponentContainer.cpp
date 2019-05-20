@@ -68,9 +68,10 @@ std::unique_ptr<ComponentContainerBase> deserialize_container(ReadableAssetArchi
 	for(auto* i = registered_types_head; i; i = i->next) {
 		if(i->type_id == type_id) {
 			auto cont = i->create_container();
-			if(!cont->deserialize(reader)) {
-				return nullptr;
+			if(cont->deserialize(reader)) {
+				return cont;
 			}
+			return nullptr;
 		}
 	}
 	return nullptr;

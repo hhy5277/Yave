@@ -43,6 +43,10 @@ class EditorContext : NonMovable, public DeviceLinked {
 		void defer(core::Function<void()> func);
 		void flush_deferred();
 
+		void save_world() const;
+		void load_world();
+		void new_world();
+
 
 		void set_scene_view(SceneView* scene);
 		void remove_scene_view(SceneView* scene);

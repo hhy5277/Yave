@@ -254,6 +254,7 @@ class ComponentContainer final : public ComponentContainerBase {
 						return core::Err();
 					}
 				}
+				y_debug_assert(_components.size() == component_count);
 			}
 			return core::Ok();
 		}

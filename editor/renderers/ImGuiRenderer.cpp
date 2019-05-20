@@ -116,8 +116,8 @@ void ImGuiRenderer::render(RenderPassRecorder& recorder, const FrameToken& token
 	usize index_offset = 0;
 	usize vertex_offset = 0;
 	const void* current_tex = nullptr;
-	for(auto i = 0; i != draw_data->CmdListsCount; ++i) {
-		const ImDrawList* cmd_list = draw_data->CmdLists[i];
+	for(auto c = 0; c != draw_data->CmdListsCount; ++c) {
+		const ImDrawList* cmd_list = draw_data->CmdLists[c];
 
 		if(cmd_list->IdxBuffer.Size + index_offset >= index_subbuffer.size()) {
 			y_fatal("Index buffer overflow.");

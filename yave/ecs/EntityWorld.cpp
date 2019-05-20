@@ -82,6 +82,7 @@ serde2::Result EntityWorld::serialize(WritableAssetArchive& writer) const {
 	if(!writer(u64(_entities.size()))) {
 		return core::Err();
 	}
+
 	for(EntityId id : _entities) {
 		if(!writer(u64(id.index()))) {
 			return core::Err();
@@ -114,6 +115,7 @@ serde2::Result EntityWorld::deserialize(ReadableAssetArchive& reader) {
 		}
 		_entities.create_with_index(EntityIndex(index)).unwrap();
 	}
+	y_debug_assert(_entities.size() == entity_count);
 
 	u32 container_count = 0;
 	if(!reader(container_count)) {
@@ -122,8 +124,20 @@ serde2::Result EntityWorld::deserialize(ReadableAssetArchive& reader) {
 	for(u32 i = 0; i != container_count; ++i) {
 		if(auto container = detail::deserialize_container(reader)) {
 			_component_containers[container->type()] = std::move(container);
+		} else {
+			log_msg("Component type can not be deserialized.", Log::Warning);
 		}
 	}
+
+	for(const auto& p : _component_containers) {
+		log_msg(type_name(p.first));
+		for(EntityIndex i : p.second->indexes()) {
+			if(!_entities.contains(EntityId::from_unversioned_index(i))) {
+				return core::Err();
+			}
+		}
+	}
+
 	return core::Ok();
 }
 

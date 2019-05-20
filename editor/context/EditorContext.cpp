@@ -24,6 +24,8 @@ SOFTWARE.
 #include <yave/device/Device.h>
 #include <yave/assets/FolderAssetStore.h>
 
+#include <y/io2/File.h>
+
 namespace editor {
 
 DevicePtr ContextLinked::device() const {
@@ -39,6 +41,8 @@ EditorContext::EditorContext(DevicePtr dptr) :
 		_ui(this),
 		_thumb_cache(this),
 		_picking_manager(this) {
+
+	load_world();
 }
 
 EditorContext::~EditorContext() {
@@ -137,7 +141,38 @@ AssetStore& EditorContext::asset_store() {
 	return *_asset_store;
 }
 
+void EditorContext::save_world() const {
+	auto file = io2::File::create("world.yw");
+	if(!file) {
+		log_msg("Unable to open file.", Log::Error);
+		return;
+	}
 
+	WritableAssetArchive ar(file.unwrap());
+	if(!_world.serialize(ar)) {
+		log_msg("Unable to serialize world.", Log::Error);
+	}
+}
 
+void EditorContext::load_world() {
+	auto file = io2::File::open("world.yw");
+	if(!file) {
+		log_msg("Unable to open file.", Log::Error);
+		return;
+	}
+
+	ecs::EntityWorld world;
+	ReadableAssetArchive ar(file.unwrap(), _loader);
+	if(!world.deserialize(ar)) {
+		log_msg("Unable to deserialize world.", Log::Error);
+		return;
+	}
+
+	_world = std::move(world);
+}
+
+void EditorContext::new_world() {
+	_world = ecs::EntityWorld();
+}
 
 }

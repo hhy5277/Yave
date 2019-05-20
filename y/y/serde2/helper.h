@@ -100,6 +100,7 @@ static Result deserialize_one(Arc& ar, T&& t) {
 	} else if constexpr(has_deserializer_v<Arc, T>){
 		return Deserializer<T>::deserialize(ar, t);
 	} else {
+		static_assert(!std::is_pointer_v<T>);
 		return ar.reader().read_one(t);
 	}
 }
@@ -184,6 +185,7 @@ static Result serialize_one(Arc& ar, const T& t) {
 	} else if constexpr(has_serializer_v<Arc, T>){
 		return Serializer<T>::serialize(ar, t);
 	} else {
+		static_assert(!std::is_pointer_v<T>);
 		return ar.writer().write_one(t);
 	}
 }

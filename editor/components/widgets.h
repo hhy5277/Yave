@@ -114,8 +114,8 @@ void widget<RenderableComponent>(ContextPtr ctx, ecs::EntityId id) {
 		core::String name = ctx->asset_store().name(instance->material().id()).map(clean_name).unwrap_or("No material");
 		if(ImGui::Button(ICON_FA_FOLDER_OPEN)) {
 			ctx->ui().add<AssetSelector>(AssetType::Material)->set_selected_callback(
-				[=](AssetId id) {
-					if(auto material = ctx->loader().load<Material>(id)) {
+				[=](AssetId asset) {
+					if(auto material = ctx->loader().load<Material>(asset)) {
 						instance->material() = material.unwrap();
 					}
 					return true;
@@ -130,8 +130,8 @@ void widget<RenderableComponent>(ContextPtr ctx, ecs::EntityId id) {
 		core::String name = ctx->asset_store().name(instance->mesh().id()).map(clean_name).unwrap_or("No mesh");
 		if(ImGui::Button(ICON_FA_FOLDER_OPEN)) {
 			ctx->ui().add<AssetSelector>(AssetType::Mesh)->set_selected_callback(
-				[=](AssetId id) {
-					if(auto mesh = ctx->loader().load<StaticMesh>(id)) {
+				[=](AssetId asset) {
+					if(auto mesh = ctx->loader().load<StaticMesh>(asset)) {
 						instance->mesh() = mesh.unwrap();
 					}
 					return true;

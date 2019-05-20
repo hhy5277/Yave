@@ -185,27 +185,24 @@ void MainWindow::render_ui(CmdBufferRecorder& recorder, const FrameToken& token)
 		if(ImGui::BeginMenuBar()) {
 			if(ImGui::BeginMenu(ICON_FA_FILE " File")) {
 
-				/*if(ImGui::MenuItem(ICON_FA_FILE " New")) {
-					context()->scene().set(Scene());
+				if(ImGui::MenuItem(ICON_FA_FILE " New")) {
+					context()->new_world();
 				}
 
 				ImGui::Separator();
 
 				if(ImGui::MenuItem(ICON_FA_SAVE " Save")) {
-					FileBrowser* browser = context()->ui().show<FileBrowser>();
+					context()->defer([ctx = context()] { ctx->save_world(); });
+					/*FileBrowser* browser = context()->ui().show<FileBrowser>();
 					browser->set_extension_filter("*.ys");
 					browser->set_selected_callback(
 							[ctx = context()](const auto& filename) { ctx->scene().save(filename); return true; }
-						);
+						);*/
 				}
 
 				if(ImGui::MenuItem(ICON_FA_FOLDER " Load")) {
-					FileBrowser* browser = context()->ui().show<FileBrowser>();
-					browser->set_extension_filter("*.ys");
-					browser->set_selected_callback(
-							[ctx = context()](const auto& filename) { ctx->scene().load(filename); return true; }
-						);
-				}*/
+					context()->load_world();
+				}
 
 				ImGui::EndMenu();
 			}

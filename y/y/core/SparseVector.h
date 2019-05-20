@@ -220,12 +220,18 @@ class SparseVector final {
 
 		pointer try_get(index_type index) {
 			auto [i, o] = page_index(index);
+			if(i >= _sparse.size()) {
+				return nullptr;
+			}
 			usize pi = _sparse[i][o];
 			return pi < _values.size() ? &_values[pi] : nullptr;
 		}
 
 		const_pointer try_get(index_type index) const {
 			auto [i, o] = page_index(index);
+			if(i >= _sparse.size()) {
+				return nullptr;
+			}
 			usize pi = _sparse[i][o];
 			return pi < _values.size() ? &_values[pi] : nullptr;
 		}

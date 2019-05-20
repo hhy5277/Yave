@@ -39,7 +39,8 @@ EcsDebug::EcsDebug(ContextPtr cptr) : Widget("ECS debug", ImGuiWindowFlags_Alway
 }
 
 void EcsDebug::paint_ui(CmdBufferRecorder&, const FrameToken&) {
-	struct Foo {}; struct Bar {}; struct Quux {}; struct Cmp {}; struct Bli {};
+	struct Foo { int i = 0; }; struct Bar { int i = 0; };
+	struct Quux { int i = 0; }; struct Cmp { int i = 0; }; struct Bli { int i = 0; };
 	ecs::EntityWorld& world = context()->world();
 
 
