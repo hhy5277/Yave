@@ -31,7 +31,7 @@ EntityIdPool::EntityIdPool() {
 
 core::Result<void> EntityIdPool::create_with_index(EntityIndex index) {
 	y_debug_assert(EntityId::from_unversioned_index(index).is_valid());
-	_ids.set_min_capacity(index);
+	_ids.set_min_capacity(index + 1);
 	while(usize(index + 1) >= _ids.size()) {
 		_ids.emplace_back();
 	}
@@ -42,6 +42,7 @@ core::Result<void> EntityIdPool::create_with_index(EntityIndex index) {
 		if(auto it = std::find(_free.begin(), _free.end(), index); it != _free.end()) {
 			_free.erase_unordered(it);
 		}
+		++_size;
 		return core::Ok();
 	}
 
